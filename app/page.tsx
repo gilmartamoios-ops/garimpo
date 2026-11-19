@@ -11,12 +11,14 @@ export default function Home() {
   );
 
   const [consulta, setConsulta] = useState("");
+  const [filtros, setFiltros] = useState<Record<string, string>>({});
   const [janelaPesquisaAberta, setJanelaPesquisaAberta] = useState(false);
 
   const [pesquisaPreparada, setPesquisaPreparada] = useState<{
     id: string;
     ambienteNome: string;
     consultaOriginal: string;
+    filtros: Record<string, string | string[]>;
   } | null>(null);
 
   const [erroPesquisa, setErroPesquisa] = useState("");
@@ -26,22 +28,39 @@ export default function Home() {
   ) {
     setAmbienteSelecionado(ambiente);
     setConsulta("");
+    setFiltros({});
     setPesquisaPreparada(null);
     setErroPesquisa("");
     setJanelaPesquisaAberta(true);
   }
 
+  function atualizarFiltro(id: string, valor: string) {
+    setFiltros((atuais) => ({
+      ...atuais,
+      [id]: valor,
+    }));
+
+    setPesquisaPreparada(null);
+    setErroPesquisa("");
+  }
+
   function executarPreparacao() {
     try {
+      const filtrosPreenchidos = Object.fromEntries(
+        Object.entries(filtros).filter(([, valor]) => valor.trim() !== "")
+      );
+
       const pesquisa = prepararPesquisa({
         ambienteId: ambienteSelecionado.id,
         consulta,
+        filtros: filtrosPreenchidos,
       });
 
       setPesquisaPreparada({
         id: pesquisa.id,
         ambienteNome: pesquisa.ambienteNome,
         consultaOriginal: pesquisa.consultaOriginal,
+        filtros: pesquisa.filtros,
       });
 
       setErroPesquisa("");
@@ -179,6 +198,29 @@ export default function Home() {
               Consulta: {pesquisaPreparada.consultaOriginal}
             </p>
 
+            {Object.entries(pesquisaPreparada.filtros).length > 0 && (
+              <div className="mt-4">
+                <p className="text-gray-400 text-sm mb-2">
+                  Critérios utilizados:
+                </p>
+
+                {Object.entries(pesquisaPreparada.filtros).map(
+                  ([id, valor]) => {
+                    const filtro = ambienteSelecionado.filtros.find(
+                      (item) => item.id === id
+                    );
+
+                    return (
+                      <p key={id} className="text-gray-300 text-sm mt-1">
+                        {filtro?.nome ?? id}:{" "}
+                        {Array.isArray(valor) ? valor.join(", ") : valor}
+                      </p>
+                    );
+                  }
+                )}
+              </div>
+            )}
+
             <p className="text-gray-500 text-xs mt-4 break-all">
               Identificador: {pesquisaPreparada.id}
             </p>
@@ -247,16 +289,48 @@ export default function Home() {
                 ))}
               </div>
 
+              {ambienteSelecionado.filtros.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-sm font-semibold text-amber-400 mb-4">
+                    REFINAR PESQUISA
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {ambienteSelecionado.filtros.map((filtro) => (
+                      <div key={filtro.id}>
+                        <label
+                          htmlFor={`filtro-${filtro.id}`}
+                          className="block text-sm text-gray-300 mb-2"
+                        >
+                          {filtro.nome}
+                        </label>
+
+                        <input
+                          id={`filtro-${filtro.id}`}
+                          type="text"
+                          value={filtros[filtro.id] ?? ""}
+                          onChange={(e) =>
+                            atualizarFiltro(filtro.id, e.target.value)
+                          }
+                          placeholder={filtro.placeholder}
+                          title={filtro.descricao}
+                          className="w-full bg-[#080d16] border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-gray-500 outline-none focus:border-amber-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <label
                 htmlFor="consulta"
                 className="block text-sm text-gray-300 mt-8 mb-3"
               >
-                O que você deseja encontrar?
+                Descreva o que deseja encontrar
               </label>
 
               <textarea
                 id="consulta"
-                autoFocus
                 value={consulta}
                 onChange={(e) => {
                   setConsulta(e.target.value);
@@ -264,7 +338,7 @@ export default function Home() {
                   setErroPesquisa("");
                 }}
                 placeholder={`Descreva sua pesquisa em ${ambienteSelecionado.nome.toLowerCase()}...`}
-                rows={5}
+                rows={4}
                 className="w-full bg-[#080d16] border border-white/10 rounded-xl p-4 text-white placeholder:text-gray-500 outline-none focus:border-amber-500 resize-y"
               />
 
@@ -297,13 +371,6 @@ export default function Home() {
                     de informação será implementada posteriormente.
                   </p>
                 </div>
-              )}
-
-              {!pesquisaPreparada && (
-                <p className="text-gray-500 text-xs mt-4">
-                  A conexão com as fontes de informação será implementada
-                  nas próximas etapas.
-                </p>
               )}
             </div>
 
