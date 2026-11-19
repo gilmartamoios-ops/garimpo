@@ -1,1 +1,9 @@
-
+app/
+  api/
+    fontes/
+      tse/
+        arquivo/
+          route.ts
+        detalhes/
+          route.ts
+        route.ts
