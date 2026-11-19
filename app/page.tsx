@@ -11,6 +11,7 @@ export default function Home() {
   );
 
   const [consulta, setConsulta] = useState("");
+  const [janelaPesquisaAberta, setJanelaPesquisaAberta] = useState(false);
 
   const [pesquisaPreparada, setPesquisaPreparada] = useState<{
     id: string;
@@ -52,6 +53,10 @@ export default function Home() {
     setConsulta("");
     setPesquisaPreparada(null);
     setErroPesquisa("");
+  }
+
+  function fecharJanelaPesquisa() {
+    setJanelaPesquisaAberta(false);
   }
 
   return (
@@ -185,40 +190,13 @@ export default function Home() {
           </div>
 
           <div className="mt-7">
-            <label
-              htmlFor="consulta"
-              className="block text-sm text-gray-300 mb-3"
-            >
-              Descreva o que deseja encontrar
-            </label>
-
-            <textarea
-              id="consulta"
-              value={consulta}
-              onChange={(e) => {
-                setConsulta(e.target.value);
-                setPesquisaPreparada(null);
-                setErroPesquisa("");
-              }}
-              placeholder={`Descreva sua pesquisa em ${ambienteSelecionado.nome.toLowerCase()}...`}
-              rows={3}
-              className="w-full bg-[#080d16] border border-white/10 rounded-xl p-4 text-white placeholder:text-gray-500 outline-none focus:border-amber-500 resize-y"
-            />
-
             <button
               type="button"
-              disabled={!consulta.trim()}
-              onClick={executarPreparacao}
-              className="w-full mt-4 rounded-xl bg-amber-500 text-black font-semibold py-4 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-amber-400 transition"
+              onClick={() => setJanelaPesquisaAberta(true)}
+              className="w-full rounded-xl bg-amber-500 text-black font-semibold py-4 hover:bg-amber-400 transition"
             >
-              Preparar pesquisa
+              ABRIR PESQUISA
             </button>
-
-            {erroPesquisa && (
-              <p className="text-red-400 text-sm mt-4">
-                {erroPesquisa}
-              </p>
-            )}
 
             {pesquisaPreparada && (
               <div className="mt-5 rounded-xl border border-amber-500/30 bg-[#080d16] p-5">
@@ -247,13 +225,143 @@ export default function Home() {
 
             {!pesquisaPreparada && (
               <p className="text-center text-gray-500 text-xs mt-3">
-                A conexão com as fontes de informação será implementada
-                nas próximas etapas.
+                Abra a janela de pesquisa para descrever o que deseja encontrar.
               </p>
             )}
           </div>
         </div>
       </section>
+
+      {janelaPesquisaAberta && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 md:p-6"
+          onClick={fecharJanelaPesquisa}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-janela-pesquisa"
+            className="relative flex flex-col w-full h-full md:h-auto md:max-h-[90vh] md:max-w-2xl overflow-y-auto bg-[#111c2b] border border-white/10 md:rounded-2xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-5 md:p-7 border-b border-white/10">
+              <div>
+                <p className="text-amber-400 text-xs font-semibold tracking-widest">
+                  GArimpo · PESQUISA
+                </p>
+
+                <h2
+                  id="titulo-janela-pesquisa"
+                  className="text-xl md:text-2xl font-semibold mt-2"
+                >
+                  O que deseja encontrar?
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={fecharJanelaPesquisa}
+                aria-label="Fechar janela de pesquisa"
+                className="text-gray-400 hover:text-white text-3xl leading-none px-2"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-5 md:p-7 flex-1">
+              <p className="text-sm text-gray-400">
+                Ambiente selecionado
+              </p>
+
+              <h3 className="text-amber-400 font-semibold text-lg mt-1">
+                {ambienteSelecionado.nome}
+              </h3>
+
+              <p className="text-gray-400 text-sm mt-2">
+                {ambienteSelecionado.finalidade}
+              </p>
+
+              <label
+                htmlFor="consulta"
+                className="block text-sm text-gray-300 mt-7 mb-3"
+              >
+                Descreva o que deseja encontrar
+              </label>
+
+              <textarea
+                id="consulta"
+                autoFocus
+                value={consulta}
+                onChange={(e) => {
+                  setConsulta(e.target.value);
+                  setPesquisaPreparada(null);
+                  setErroPesquisa("");
+                }}
+                placeholder={`Descreva sua pesquisa em ${ambienteSelecionado.nome.toLowerCase()}...`}
+                rows={5}
+                className="w-full bg-[#080d16] border border-white/10 rounded-xl p-4 text-white placeholder:text-gray-500 outline-none focus:border-amber-500 resize-y"
+              />
+
+              {erroPesquisa && (
+                <p className="text-red-400 text-sm mt-4">
+                  {erroPesquisa}
+                </p>
+              )}
+
+              {pesquisaPreparada && (
+                <div className="mt-5 rounded-xl border border-amber-500/30 bg-[#080d16] p-5">
+                  <p className="text-amber-400 text-sm font-semibold">
+                    PESQUISA PREPARADA
+                  </p>
+
+                  <p className="text-white mt-3">
+                    Ambiente: {pesquisaPreparada.ambienteNome}
+                  </p>
+
+                  <p className="text-gray-300 mt-2">
+                    Consulta: {pesquisaPreparada.consultaOriginal}
+                  </p>
+
+                  <p className="text-gray-500 text-xs mt-4 break-all">
+                    Identificador: {pesquisaPreparada.id}
+                  </p>
+
+                  <p className="text-gray-400 text-xs mt-3">
+                    A pesquisa foi organizada. A conexão com fontes
+                    de informação será implementada posteriormente.
+                  </p>
+                </div>
+              )}
+
+              {!pesquisaPreparada && (
+                <p className="text-gray-500 text-xs mt-4">
+                  A conexão com as fontes de informação será implementada
+                  nas próximas etapas.
+                </p>
+              )}
+            </div>
+
+            <div className="p-5 md:px-7 md:pb-7 border-t border-white/10">
+              <button
+                type="button"
+                disabled={!consulta.trim()}
+                onClick={executarPreparacao}
+                className="w-full rounded-xl bg-amber-500 text-black font-semibold py-4 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-amber-400 transition"
+              >
+                Preparar pesquisa
+              </button>
+
+              <button
+                type="button"
+                onClick={fecharJanelaPesquisa}
+                className="w-full mt-3 rounded-xl border border-white/10 text-gray-300 py-3 hover:bg-white/5 transition"
+              >
+                Fechar janela
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       <section
         id="sobre"
