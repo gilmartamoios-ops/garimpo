@@ -4,6 +4,9 @@ import "server-only";
 const API_TSE =
   "https://dadosabertos.tse.jus.br/api/3/action";
 
+const ARQUIVO_CANDIDATOS_2024 =
+  "https://cdn.tse.jus.br/estatistica/sead/odsele/consulta_cand/consulta_cand_2024.zip";
+
 export type RecursoTSE = {
   id: string;
   nome: string;
@@ -56,6 +59,37 @@ type RespostaDetalhesCKAN = {
   success: boolean;
   result?: ConjuntoCKAN;
 };
+
+export type MetadadosArquivoTSE = {
+  disponivel: boolean;
+  endereco: string;
+  enderecoFinal: string;
+  statusHTTP: number;
+  tipoConteudo: string;
+  tamanhoBytes: number | null;
+  tamanhoFormatado: string;
+  atualizadoEm: string | null;
+};
+
+function formatarTamanho(bytes: number | null): string {
+  if (bytes === null) {
+    return "Tamanho não informado pelo servidor";
+  }
+
+  if (bytes < 1024) {
+    return `${bytes} bytes`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(2)} KB`;
+  }
+
+  if (bytes < 1024 * 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
+
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
 
 function normalizarConjunto(
   conjunto: ConjuntoCKAN
@@ -191,4 +225,43 @@ export async function buscarDetalhesConjuntoTSE(
   }
 
   return normalizarConjunto(dados.result);
+}
+
+export async function verificarArquivoCandidatos2024TSE(): Promise<MetadadosArquivoTSE> {
+  const resposta = await fetch(
+    ARQUIVO_CANDIDATOS_2024,
+    {
+      method: "HEAD",
+      cache: "no-store",
+    }
+  );
+
+  if (!resposta.ok) {
+    throw new Error(
+      `Não foi possível verificar o arquivo do TSE. Status HTTP: ${resposta.status}`
+    );
+  }
+
+  const tamanhoInformado =
+    resposta.headers.get("content-length");
+
+  const tamanhoBytes =
+    tamanhoInformado &&
+    Number.isFinite(Number(tamanhoInformado))
+      ? Number(tamanhoInformado)
+      : null;
+
+  return {
+    disponivel: true,
+    endereco: ARQUIVO_CANDIDATOS_2024,
+    enderecoFinal: resposta.url,
+    statusHTTP: resposta.status,
+    tipoConteudo:
+      resposta.headers.get("content-type") ??
+      "Não informado",
+    tamanhoBytes,
+    tamanhoFormatado: formatarTamanho(tamanhoBytes),
+    atualizadoEm:
+      resposta.headers.get("last-modified"),
+  };
 }
