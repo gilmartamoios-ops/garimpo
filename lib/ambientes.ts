@@ -82,7 +82,44 @@ export const ambientes: Ambiente[] = [
       "Especialidades",
       "Área de atuação",
     ],
-    filtros: [],
+    filtros: [
+      {
+        id: "profissao",
+        nome: "Profissão",
+        descricao: "Informe a profissão que deseja encontrar.",
+        placeholder: "Ex.: engenheiro, contador, advogado",
+      },
+      {
+        id: "especialidade",
+        nome: "Especialidade",
+        descricao: "Indique a especialização ou área técnica do profissional.",
+        placeholder: "Ex.: direito trabalhista, cardiologia",
+      },
+      {
+        id: "localizacao",
+        nome: "Localização",
+        descricao: "Informe a cidade, estado ou região de atuação.",
+        placeholder: "Ex.: Cabo Frio, RJ",
+      },
+      {
+        id: "formacao",
+        nome: "Formação ou qualificação",
+        descricao: "Informe a formação acadêmica ou qualificação desejada.",
+        placeholder: "Ex.: graduação em administração, técnico em informática",
+      },
+      {
+        id: "experiencia",
+        nome: "Experiência profissional",
+        descricao: "Descreva o nível ou tipo de experiência procurada.",
+        placeholder: "Ex.: iniciante, sênior, gestão de equipes",
+      },
+      {
+        id: "competencias",
+        nome: "Competências e habilidades",
+        descricao: "Informe conhecimentos e habilidades relevantes.",
+        placeholder: "Ex.: liderança, vendas, programação",
+      },
+    ],
     ativo: true,
   },
   {
