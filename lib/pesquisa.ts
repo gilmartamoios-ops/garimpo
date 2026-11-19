@@ -38,8 +38,26 @@ export function prepararPesquisa(
 
   const consulta = solicitacao.consulta.trim();
 
-  if (!consulta) {
-    throw new Error("Informe o que deseja pesquisar.");
+  const filtros = Object.fromEntries(
+    Object.entries(solicitacao.filtros ?? {})
+      .map(([chave, valor]) => {
+        if (Array.isArray(valor)) {
+          return [chave, valor.map((item) => item.trim()).filter(Boolean)];
+        }
+
+        return [chave, valor.trim()];
+      })
+      .filter(([, valor]) =>
+        Array.isArray(valor) ? valor.length > 0 : valor !== ""
+      )
+  ) as Record<string, string | string[]>;
+
+  const possuiFiltros = Object.keys(filtros).length > 0;
+
+  if (!consulta && !possuiFiltros) {
+    throw new Error(
+      "Informe uma descrição ou preencha pelo menos um filtro."
+    );
   }
 
   return {
@@ -51,7 +69,7 @@ export function prepararPesquisa(
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase(),
-    filtros: solicitacao.filtros ?? {},
+    filtros,
     status: "preparada",
     criadaEm: new Date().toISOString(),
   };
