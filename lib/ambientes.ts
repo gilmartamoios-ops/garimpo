@@ -188,7 +188,44 @@ export const ambientes: Ambiente[] = [
       "Finalidade institucional",
       "Presença pública",
     ],
-    filtros: [],
+    filtros: [
+      {
+        id: "nomeOrganizacao",
+        nome: "Nome da organização",
+        descricao: "Informe o nome completo ou parcial da organização.",
+        placeholder: "Ex.: Instituto, Associação ou Fundação",
+      },
+      {
+        id: "tipoOrganizacao",
+        nome: "Tipo de organização",
+        descricao: "Indique a natureza ou categoria da organização.",
+        placeholder: "Ex.: associação, instituto, fundação, ONG",
+      },
+      {
+        id: "areaAtuacao",
+        nome: "Área de atuação",
+        descricao: "Informe a área em que a organização desenvolve suas atividades.",
+        placeholder: "Ex.: educação, cultura, assistência social",
+      },
+      {
+        id: "localizacao",
+        nome: "Localização",
+        descricao: "Informe a cidade, estado ou região da organização.",
+        placeholder: "Ex.: Cabo Frio, RJ",
+      },
+      {
+        id: "finalidadeInstitucional",
+        nome: "Finalidade institucional",
+        descricao: "Descreva a finalidade ou missão da organização.",
+        placeholder: "Ex.: inclusão social, desenvolvimento comunitário",
+      },
+      {
+        id: "projetosIniciativas",
+        nome: "Projetos e iniciativas",
+        descricao: "Informe projetos, programas ou iniciativas relacionados.",
+        placeholder: "Ex.: capacitação, voluntariado, preservação ambiental",
+      },
+    ],
     ativo: true,
   },
   {
