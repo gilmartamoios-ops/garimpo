@@ -21,6 +21,16 @@ export default function Home() {
 
   const [erroPesquisa, setErroPesquisa] = useState("");
 
+  function selecionarAmbiente(
+    ambiente: (typeof ambientes)[number]
+  ) {
+    setAmbienteSelecionado(ambiente);
+    setConsulta("");
+    setPesquisaPreparada(null);
+    setErroPesquisa("");
+    setJanelaPesquisaAberta(true);
+  }
+
   function executarPreparacao() {
     try {
       const pesquisa = prepararPesquisa({
@@ -44,15 +54,6 @@ export default function Home() {
           : "Não foi possível preparar a pesquisa."
       );
     }
-  }
-
-  function selecionarAmbiente(
-    ambiente: (typeof ambientes)[number]
-  ) {
-    setAmbienteSelecionado(ambiente);
-    setConsulta("");
-    setPesquisaPreparada(null);
-    setErroPesquisa("");
   }
 
   function fecharJanelaPesquisa() {
@@ -126,13 +127,13 @@ export default function Home() {
           </h2>
 
           <p className="text-gray-400 mt-3 text-sm">
-            Escolha um ambiente e defina sua pesquisa.
+            Escolha um ambiente para iniciar sua pesquisa.
           </p>
         </div>
 
         <div
           id="ambientes"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
         >
           {ambientes
             .filter((ambiente) => ambiente.ativo)
@@ -141,12 +142,7 @@ export default function Home() {
                 key={ambiente.id}
                 type="button"
                 onClick={() => selecionarAmbiente(ambiente)}
-                aria-pressed={ambienteSelecionado.id === ambiente.id}
-                className={`text-left rounded-xl border p-5 transition ${
-                  ambienteSelecionado.id === ambiente.id
-                    ? "border-amber-400 bg-amber-500/10"
-                    : "border-white/10 bg-[#111c2b] hover:border-amber-500/50"
-                }`}
+                className="text-left rounded-xl border border-white/10 bg-[#111c2b] p-5 transition hover:border-amber-400 hover:bg-amber-500/10 active:scale-[0.99]"
               >
                 <h3 className="font-semibold text-lg text-amber-400">
                   {ambiente.nome}
@@ -156,92 +152,55 @@ export default function Home() {
                   {ambiente.descricao}
                 </p>
 
-                <p className="text-xs text-gray-500 mt-4">
-                  {ambienteSelecionado.id === ambiente.id
-                    ? "Ambiente selecionado"
-                    : "Selecionar ambiente"}
-                </p>
+                <div className="flex items-center justify-between mt-5">
+                  <span className="text-xs text-amber-300">
+                    Iniciar pesquisa
+                  </span>
+
+                  <span className="text-amber-400 text-lg">
+                    →
+                  </span>
+                </div>
               </button>
             ))}
         </div>
 
-        <div className="bg-[#111c2b] border border-white/10 rounded-2xl p-5 md:p-7 shadow-2xl">
-          <p className="text-amber-400 text-sm font-semibold mb-2">
-            AMBIENTE SELECIONADO
-          </p>
+        {pesquisaPreparada && (
+          <div className="mt-8 rounded-xl border border-amber-500/30 bg-[#111c2b] p-5">
+            <p className="text-amber-400 text-sm font-semibold">
+              ÚLTIMA PESQUISA PREPARADA
+            </p>
 
-          <h3 className="text-xl font-semibold">
-            {ambienteSelecionado.nome}
-          </h3>
+            <p className="text-white mt-3">
+              Ambiente: {pesquisaPreparada.ambienteNome}
+            </p>
 
-          <p className="text-gray-400 text-sm mt-2">
-            {ambienteSelecionado.finalidade}
-          </p>
+            <p className="text-gray-300 mt-2">
+              Consulta: {pesquisaPreparada.consultaOriginal}
+            </p>
 
-          <div className="flex flex-wrap gap-2 mt-5">
-            {ambienteSelecionado.categorias.map((categoria) => (
-              <span
-                key={categoria}
-                className="text-xs rounded-full border border-amber-500/30 px-3 py-2 text-amber-300"
-              >
-                {categoria}
-              </span>
-            ))}
+            <p className="text-gray-500 text-xs mt-4 break-all">
+              Identificador: {pesquisaPreparada.id}
+            </p>
+
+            <p className="text-gray-400 text-xs mt-3">
+              A pesquisa foi organizada. A conexão com fontes
+              de informação será implementada posteriormente.
+            </p>
           </div>
-
-          <div className="mt-7">
-            <button
-              type="button"
-              onClick={() => setJanelaPesquisaAberta(true)}
-              className="w-full rounded-xl bg-amber-500 text-black font-semibold py-4 hover:bg-amber-400 transition"
-            >
-              ABRIR PESQUISA
-            </button>
-
-            {pesquisaPreparada && (
-              <div className="mt-5 rounded-xl border border-amber-500/30 bg-[#080d16] p-5">
-                <p className="text-amber-400 text-sm font-semibold">
-                  PESQUISA PREPARADA
-                </p>
-
-                <p className="text-white mt-3">
-                  Ambiente: {pesquisaPreparada.ambienteNome}
-                </p>
-
-                <p className="text-gray-300 mt-2">
-                  Consulta: {pesquisaPreparada.consultaOriginal}
-                </p>
-
-                <p className="text-gray-500 text-xs mt-4 break-all">
-                  Identificador: {pesquisaPreparada.id}
-                </p>
-
-                <p className="text-gray-400 text-xs mt-3">
-                  A pesquisa foi organizada. A conexão com fontes
-                  de informação será implementada posteriormente.
-                </p>
-              </div>
-            )}
-
-            {!pesquisaPreparada && (
-              <p className="text-center text-gray-500 text-xs mt-3">
-                Abra a janela de pesquisa para descrever o que deseja encontrar.
-              </p>
-            )}
-          </div>
-        </div>
+        )}
       </section>
 
       {janelaPesquisaAberta && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 md:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 md:p-6"
           onClick={fecharJanelaPesquisa}
         >
           <section
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-janela-pesquisa"
-            className="relative flex flex-col w-full h-full md:h-auto md:max-h-[90vh] md:max-w-2xl overflow-y-auto bg-[#111c2b] border border-white/10 md:rounded-2xl shadow-2xl"
+            className="flex flex-col w-full h-full md:h-auto md:max-h-[90vh] md:max-w-2xl overflow-y-auto bg-[#111c2b] border border-white/10 md:rounded-2xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-5 md:p-7 border-b border-white/10">
@@ -254,8 +213,12 @@ export default function Home() {
                   id="titulo-janela-pesquisa"
                   className="text-xl md:text-2xl font-semibold mt-2"
                 >
-                  O que deseja encontrar?
+                  {ambienteSelecionado.nome}
                 </h2>
+
+                <p className="text-gray-400 text-sm mt-1">
+                  {ambienteSelecionado.finalidade}
+                </p>
               </div>
 
               <button
@@ -269,23 +232,26 @@ export default function Home() {
             </div>
 
             <div className="p-5 md:p-7 flex-1">
-              <p className="text-sm text-gray-400">
-                Ambiente selecionado
+              <p className="text-sm text-gray-300 font-medium mb-3">
+                Categorias deste ambiente
               </p>
 
-              <h3 className="text-amber-400 font-semibold text-lg mt-1">
-                {ambienteSelecionado.nome}
-              </h3>
-
-              <p className="text-gray-400 text-sm mt-2">
-                {ambienteSelecionado.finalidade}
-              </p>
+              <div className="flex flex-wrap gap-2">
+                {ambienteSelecionado.categorias.map((categoria) => (
+                  <span
+                    key={categoria}
+                    className="text-xs rounded-full border border-amber-500/30 px-3 py-2 text-amber-300"
+                  >
+                    {categoria}
+                  </span>
+                ))}
+              </div>
 
               <label
                 htmlFor="consulta"
-                className="block text-sm text-gray-300 mt-7 mb-3"
+                className="block text-sm text-gray-300 mt-8 mb-3"
               >
-                Descreva o que deseja encontrar
+                O que você deseja encontrar?
               </label>
 
               <textarea
@@ -356,7 +322,7 @@ export default function Home() {
                 onClick={fecharJanelaPesquisa}
                 className="w-full mt-3 rounded-xl border border-white/10 text-gray-300 py-3 hover:bg-white/5 transition"
               >
-                Fechar janela
+                Voltar aos ambientes
               </button>
             </div>
           </section>
