@@ -1,6 +1,14 @@
 
 import { buscarAmbiente } from "./ambientes";
 
+export type {
+  ResultadoPesquisa,
+} from "./resultados";
+
+export {
+  validarResultados,
+} from "./resultados";
+
 export type SolicitacaoPesquisa = {
   ambienteId: string;
   consulta: string;
@@ -18,15 +26,6 @@ export type PesquisaOrganizada = {
   criadaEm: string;
 };
 
-export type ResultadoPesquisa = {
-  id: string;
-  titulo: string;
-  descricao: string;
-  fonte: string;
-  url?: string;
-  relevancia?: number;
-};
-
 export function prepararPesquisa(
   solicitacao: SolicitacaoPesquisa
 ): PesquisaOrganizada {
@@ -42,7 +41,10 @@ export function prepararPesquisa(
     Object.entries(solicitacao.filtros ?? {})
       .map(([chave, valor]) => {
         if (Array.isArray(valor)) {
-          return [chave, valor.map((item) => item.trim()).filter(Boolean)];
+          return [
+            chave,
+            valor.map((item) => item.trim()).filter(Boolean),
+          ];
         }
 
         return [chave, valor.trim()];
@@ -73,15 +75,4 @@ export function prepararPesquisa(
     status: "preparada",
     criadaEm: new Date().toISOString(),
   };
-}
-
-export function validarResultados(
-  resultados: ResultadoPesquisa[]
-): ResultadoPesquisa[] {
-  return resultados.filter(
-    (resultado) =>
-      resultado.id.trim() !== "" &&
-      resultado.titulo.trim() !== "" &&
-      resultado.fonte.trim() !== ""
-  );
 }
