@@ -1,10 +1,18 @@
 
+export type FiltroAmbiente = {
+  id: string;
+  nome: string;
+  descricao: string;
+  placeholder: string;
+};
+
 export type Ambiente = {
   id: string;
   nome: string;
   descricao: string;
   finalidade: string;
   categorias: string[];
+  filtros: FiltroAmbiente[];
   ativo: boolean;
 };
 
@@ -21,6 +29,44 @@ export const ambientes: Ambiente[] = [
       "Vínculos institucionais",
       "Atuação pública",
     ],
+    filtros: [
+      {
+        id: "nome",
+        nome: "Nome ou parte do nome",
+        descricao: "Informe o nome que deseja localizar.",
+        placeholder: "Ex.: João da Silva",
+      },
+      {
+        id: "profissao",
+        nome: "Profissão ou ocupação",
+        descricao: "Qual é a profissão ou atividade da pessoa?",
+        placeholder: "Ex.: advogado, médico, professor",
+      },
+      {
+        id: "localizacao",
+        nome: "Localização",
+        descricao: "Informe a cidade, estado ou região.",
+        placeholder: "Ex.: Cabo Frio, RJ",
+      },
+      {
+        id: "areaAtuacao",
+        nome: "Área de atuação",
+        descricao: "Em qual área a pessoa atua?",
+        placeholder: "Ex.: educação, saúde, tecnologia",
+      },
+      {
+        id: "organizacao",
+        nome: "Organização ou instituição",
+        descricao: "Informe uma empresa ou instituição relacionada.",
+        placeholder: "Ex.: universidade, associação, empresa",
+      },
+      {
+        id: "palavrasChave",
+        nome: "Palavras-chave",
+        descricao: "Acrescente termos que ajudem a refinar a pesquisa.",
+        placeholder: "Ex.: projetos sociais, liderança, palestras",
+      },
+    ],
     ativo: true,
   },
   {
@@ -36,6 +82,7 @@ export const ambientes: Ambiente[] = [
       "Especialidades",
       "Área de atuação",
     ],
+    filtros: [],
     ativo: true,
   },
   {
@@ -51,6 +98,7 @@ export const ambientes: Ambiente[] = [
       "Atividade econômica",
       "Presença digital",
     ],
+    filtros: [],
     ativo: true,
   },
   {
@@ -66,6 +114,7 @@ export const ambientes: Ambiente[] = [
       "Finalidade institucional",
       "Presença pública",
     ],
+    filtros: [],
     ativo: true,
   },
   {
@@ -81,6 +130,7 @@ export const ambientes: Ambiente[] = [
       "Iniciativas",
       "Referências públicas",
     ],
+    filtros: [],
     ativo: true,
   },
 ];
