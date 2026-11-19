@@ -135,7 +135,44 @@ export const ambientes: Ambiente[] = [
       "Atividade econômica",
       "Presença digital",
     ],
-    filtros: [],
+    filtros: [
+      {
+        id: "nomeEmpresa",
+        nome: "Nome ou razão social",
+        descricao: "Informe o nome da empresa que deseja localizar.",
+        placeholder: "Ex.: Empresa Exemplo Ltda.",
+      },
+      {
+        id: "segmento",
+        nome: "Segmento empresarial",
+        descricao: "Indique o setor ou segmento em que a empresa atua.",
+        placeholder: "Ex.: construção civil, tecnologia, saúde",
+      },
+      {
+        id: "localizacao",
+        nome: "Localização",
+        descricao: "Informe a cidade, estado ou região da empresa.",
+        placeholder: "Ex.: Cabo Frio, RJ",
+      },
+      {
+        id: "porte",
+        nome: "Porte da empresa",
+        descricao: "Informe o porte empresarial desejado.",
+        placeholder: "Ex.: MEI, microempresa, pequena, média ou grande",
+      },
+      {
+        id: "atividadeEconomica",
+        nome: "Atividade econômica",
+        descricao: "Descreva a atividade principal ou secundária da empresa.",
+        placeholder: "Ex.: fabricação de móveis, comércio varejista",
+      },
+      {
+        id: "presencaDigital",
+        nome: "Site ou presença digital",
+        descricao: "Indique o tipo de presença digital que deseja localizar.",
+        placeholder: "Ex.: site próprio, loja virtual, redes sociais",
+      },
+    ],
     ativo: true,
   },
   {
