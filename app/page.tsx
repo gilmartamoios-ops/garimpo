@@ -79,6 +79,13 @@ export default function Home() {
     setJanelaPesquisaAberta(false);
   }
 
+  const possuiFiltrosPreenchidos = Object.values(filtros).some(
+    (valor) => valor.trim() !== ""
+  );
+
+  const podePrepararPesquisa =
+    consulta.trim() !== "" || possuiFiltrosPreenchidos;
+
   return (
     <main className="min-h-screen bg-[#080d16] text-white">
       <header className="flex items-center justify-between px-6 md:px-16 py-5 border-b border-white/10">
@@ -377,7 +384,7 @@ export default function Home() {
             <div className="p-5 md:px-7 md:pb-7 border-t border-white/10">
               <button
                 type="button"
-                disabled={!consulta.trim()}
+                disabled={!podePrepararPesquisa}
                 onClick={executarPreparacao}
                 className="w-full rounded-xl bg-amber-500 text-black font-semibold py-4 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-amber-400 transition"
               >
