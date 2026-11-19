@@ -3,12 +3,56 @@
 
 import { useState } from "react";
 import { ambientes } from "@/lib/ambientes";
+import { prepararPesquisa } from "@/lib/pesquisa";
 
 export default function Home() {
   const [ambienteSelecionado, setAmbienteSelecionado] = useState(
     ambientes[0]
   );
+
   const [consulta, setConsulta] = useState("");
+
+  const [pesquisaPreparada, setPesquisaPreparada] = useState<{
+    id: string;
+    ambienteNome: string;
+    consultaOriginal: string;
+  } | null>(null);
+
+  const [erroPesquisa, setErroPesquisa] = useState("");
+
+  function executarPreparacao() {
+    try {
+      const pesquisa = prepararPesquisa({
+        ambienteId: ambienteSelecionado.id,
+        consulta,
+      });
+
+      setPesquisaPreparada({
+        id: pesquisa.id,
+        ambienteNome: pesquisa.ambienteNome,
+        consultaOriginal: pesquisa.consultaOriginal,
+      });
+
+      setErroPesquisa("");
+    } catch (error) {
+      setPesquisaPreparada(null);
+
+      setErroPesquisa(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível preparar a pesquisa."
+      );
+    }
+  }
+
+  function selecionarAmbiente(
+    ambiente: (typeof ambientes)[number]
+  ) {
+    setAmbienteSelecionado(ambiente);
+    setConsulta("");
+    setPesquisaPreparada(null);
+    setErroPesquisa("");
+  }
 
   return (
     <main className="min-h-screen bg-[#080d16] text-white">
@@ -20,10 +64,18 @@ export default function Home() {
         />
 
         <nav className="hidden md:flex items-center gap-8 text-sm text-gray-300">
-          <a href="#inicio" className="hover:text-amber-400">Início</a>
-          <a href="#pesquisa" className="hover:text-amber-400">Pesquisa</a>
-          <a href="#ambientes" className="hover:text-amber-400">Ambientes</a>
-          <a href="#sobre" className="hover:text-amber-400">Sobre</a>
+          <a href="#inicio" className="hover:text-amber-400">
+            Início
+          </a>
+          <a href="#pesquisa" className="hover:text-amber-400">
+            Pesquisa
+          </a>
+          <a href="#ambientes" className="hover:text-amber-400">
+            Ambientes
+          </a>
+          <a href="#sobre" className="hover:text-amber-400">
+            Sobre
+          </a>
         </nav>
 
         <a
@@ -59,7 +111,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="pesquisa" className="max-w-5xl mx-auto px-5 py-12 md:py-16">
+      <section
+        id="pesquisa"
+        className="max-w-5xl mx-auto px-5 py-12 md:py-16"
+      >
         <div className="text-center mb-8">
           <h2 className="text-2xl md:text-3xl font-semibold">
             O que você deseja encontrar?
@@ -70,36 +125,39 @@ export default function Home() {
           </p>
         </div>
 
-        <div id="ambientes" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {ambientes.filter((ambiente) => ambiente.ativo).map((ambiente) => (
-            <button
-              key={ambiente.id}
-              type="button"
-              onClick={() => {
-                setAmbienteSelecionado(ambiente);
-                setConsulta("");
-              }}
-              className={`text-left rounded-xl border p-5 transition ${
-                ambienteSelecionado.id === ambiente.id
-                  ? "border-amber-400 bg-amber-500/10"
-                  : "border-white/10 bg-[#111c2b] hover:border-amber-500/50"
-              }`}
-            >
-              <h3 className="font-semibold text-lg text-amber-400">
-                {ambiente.nome}
-              </h3>
+        <div
+          id="ambientes"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+        >
+          {ambientes
+            .filter((ambiente) => ambiente.ativo)
+            .map((ambiente) => (
+              <button
+                key={ambiente.id}
+                type="button"
+                onClick={() => selecionarAmbiente(ambiente)}
+                aria-pressed={ambienteSelecionado.id === ambiente.id}
+                className={`text-left rounded-xl border p-5 transition ${
+                  ambienteSelecionado.id === ambiente.id
+                    ? "border-amber-400 bg-amber-500/10"
+                    : "border-white/10 bg-[#111c2b] hover:border-amber-500/50"
+                }`}
+              >
+                <h3 className="font-semibold text-lg text-amber-400">
+                  {ambiente.nome}
+                </h3>
 
-              <p className="text-gray-400 text-sm mt-2 leading-relaxed">
-                {ambiente.descricao}
-              </p>
+                <p className="text-gray-400 text-sm mt-2 leading-relaxed">
+                  {ambiente.descricao}
+                </p>
 
-              <p className="text-xs text-gray-500 mt-4">
-                {ambienteSelecionado.id === ambiente.id
-                  ? "Ambiente selecionado"
-                  : "Selecionar ambiente"}
-              </p>
-            </button>
-          ))}
+                <p className="text-xs text-gray-500 mt-4">
+                  {ambienteSelecionado.id === ambiente.id
+                    ? "Ambiente selecionado"
+                    : "Selecionar ambiente"}
+                </p>
+              </button>
+            ))}
         </div>
 
         <div className="bg-[#111c2b] border border-white/10 rounded-2xl p-5 md:p-7 shadow-2xl">
@@ -137,7 +195,11 @@ export default function Home() {
             <textarea
               id="consulta"
               value={consulta}
-              onChange={(e) => setConsulta(e.target.value)}
+              onChange={(e) => {
+                setConsulta(e.target.value);
+                setPesquisaPreparada(null);
+                setErroPesquisa("");
+              }}
               placeholder={`Descreva sua pesquisa em ${ambienteSelecionado.nome.toLowerCase()}...`}
               rows={3}
               className="w-full bg-[#080d16] border border-white/10 rounded-xl p-4 text-white placeholder:text-gray-500 outline-none focus:border-amber-500 resize-y"
@@ -145,21 +207,58 @@ export default function Home() {
 
             <button
               type="button"
-              disabled
-              className="w-full mt-4 rounded-xl bg-amber-500 text-black font-semibold py-4 opacity-60 cursor-not-allowed"
+              disabled={!consulta.trim()}
+              onClick={executarPreparacao}
+              className="w-full mt-4 rounded-xl bg-amber-500 text-black font-semibold py-4 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-amber-400 transition"
             >
-              Motor de pesquisa em preparação
+              Preparar pesquisa
             </button>
 
-            <p className="text-center text-gray-500 text-xs mt-3">
-              A conexão com as fontes de informação será implementada
-              nas próximas etapas.
-            </p>
+            {erroPesquisa && (
+              <p className="text-red-400 text-sm mt-4">
+                {erroPesquisa}
+              </p>
+            )}
+
+            {pesquisaPreparada && (
+              <div className="mt-5 rounded-xl border border-amber-500/30 bg-[#080d16] p-5">
+                <p className="text-amber-400 text-sm font-semibold">
+                  PESQUISA PREPARADA
+                </p>
+
+                <p className="text-white mt-3">
+                  Ambiente: {pesquisaPreparada.ambienteNome}
+                </p>
+
+                <p className="text-gray-300 mt-2">
+                  Consulta: {pesquisaPreparada.consultaOriginal}
+                </p>
+
+                <p className="text-gray-500 text-xs mt-4 break-all">
+                  Identificador: {pesquisaPreparada.id}
+                </p>
+
+                <p className="text-gray-400 text-xs mt-3">
+                  A pesquisa foi organizada. A conexão com fontes
+                  de informação será implementada posteriormente.
+                </p>
+              </div>
+            )}
+
+            {!pesquisaPreparada && (
+              <p className="text-center text-gray-500 text-xs mt-3">
+                A conexão com as fontes de informação será implementada
+                nas próximas etapas.
+              </p>
+            )}
           </div>
         </div>
       </section>
 
-      <section id="sobre" className="text-center px-5 py-12 border-t border-white/10">
+      <section
+        id="sobre"
+        className="text-center px-5 py-12 border-t border-white/10"
+      >
         <h2 className="text-xl font-semibold">GArimpo</h2>
 
         <p className="text-gray-400 text-sm mt-2">
