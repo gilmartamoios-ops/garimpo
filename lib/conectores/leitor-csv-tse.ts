@@ -1,18 +1,6 @@
 
 import "server-only";
 
-/**
- * Leitor de arquivos CSV do Tribunal Superior Eleitoral.
- *
- * Características:
- * - Codificação Latin-1.
- * - Separador ponto e vírgula.
- * - Campos delimitados por aspas.
- * - Suporte a aspas escapadas.
- * - Suporte a quebras de linha dentro dos campos.
- * - Conversão de #NULO e campos vazios para null.
- */
-
 export type RegistroTSE = Record<string, string | null>;
 
 export type ResultadoLeituraTSE = {
@@ -30,26 +18,19 @@ function normalizarValor(valor: string): string | null {
     return null;
   }
 
-  // Preserva valores como -4 e textos como NÃO DIVULGÁVEL.
   return limpo;
 }
 
-/**
- * Converte os bytes originais do arquivo para texto Latin-1.
- */
 export function decodificarCSVTSE(
   arquivo: Uint8Array
 ): string {
   const decoder = new TextDecoder("iso-8859-1");
-
   return decoder.decode(arquivo);
 }
 
-/**
- * Interpreta o conteúdo CSV respeitando aspas e separadores.
- */
 function separarCSV(
-  conteudo: string
+  conteudo: string,
+  limiteLinhas = 0
 ): string[][] {
   const linhas: string[][] = [];
 
@@ -62,10 +43,7 @@ function separarCSV(
     const proximo = conteudo[i + 1];
 
     if (caractere === '"') {
-      if (
-        dentroDeAspas &&
-        proximo === '"'
-      ) {
+      if (dentroDeAspas && proximo === '"') {
         campo += '"';
         i++;
       } else {
@@ -75,36 +53,34 @@ function separarCSV(
       continue;
     }
 
-    if (
-      caractere === ";" &&
-      !dentroDeAspas
-    ) {
+    if (caractere === ";" && !dentroDeAspas) {
       linha.push(campo);
       campo = "";
       continue;
     }
 
     if (
-      (caractere === "\n" ||
-        caractere === "\r") &&
+      (caractere === "\n" || caractere === "\r") &&
       !dentroDeAspas
     ) {
       linha.push(campo);
 
-      if (
-        linha.some((valor) => valor.trim() !== "")
-      ) {
+      if (linha.some((valor) => valor.trim() !== "")) {
         linhas.push(linha);
       }
 
       linha = [];
       campo = "";
 
-      if (
-        caractere === "\r" &&
-        proximo === "\n"
-      ) {
+      if (caractere === "\r" && proximo === "\n") {
         i++;
+      }
+
+      if (
+        limiteLinhas > 0 &&
+        linhas.length >= limiteLinhas
+      ) {
+        return linhas;
       }
 
       continue;
@@ -119,15 +95,10 @@ function separarCSV(
     );
   }
 
-  if (
-    campo !== "" ||
-    linha.length > 0
-  ) {
+  if (campo !== "" || linha.length > 0) {
     linha.push(campo);
 
-    if (
-      linha.some((valor) => valor.trim() !== "")
-    ) {
+    if (linha.some((valor) => valor.trim() !== "")) {
       linhas.push(linha);
     }
   }
@@ -135,30 +106,30 @@ function separarCSV(
   return linhas;
 }
 
-/**
- * Lê o CSV e transforma cada linha em um registro identificado
- * pelos nomes originais das colunas do TSE.
- */
 export function lerCSVdoTSE(
   conteudo: string,
   limiteRegistros = 0
 ): ResultadoLeituraTSE {
   if (!conteudo || !conteudo.trim()) {
-    throw new Error(
-      "O arquivo CSV está vazio."
-    );
+    throw new Error("O arquivo CSV está vazio.");
   }
 
   if (
     !Number.isInteger(limiteRegistros) ||
     limiteRegistros < 0
   ) {
-    throw new Error(
-      "O limite de registros é inválido."
-    );
+    throw new Error("O limite de registros é inválido.");
   }
 
-  const linhas = separarCSV(conteudo);
+  const limiteLinhas =
+    limiteRegistros > 0
+      ? limiteRegistros + 1
+      : 0;
+
+  const linhas = separarCSV(
+    conteudo,
+    limiteLinhas
+  );
 
   if (linhas.length < 2) {
     throw new Error(
@@ -168,38 +139,25 @@ export function lerCSVdoTSE(
 
   const colunas = linhas[0].map(
     (coluna) =>
-      coluna
-        .replace(/^\uFEFF/, "")
-        .trim()
+      coluna.replace(/^\uFEFF/, "").trim()
   );
 
-  if (
-    colunas.some((coluna) => coluna === "")
-  ) {
+  if (colunas.some((coluna) => coluna === "")) {
     throw new Error(
       "O cabeçalho do CSV possui uma coluna sem identificação."
     );
   }
 
-  if (
-    new Set(colunas).size !== colunas.length
-  ) {
+  if (new Set(colunas).size !== colunas.length) {
     throw new Error(
       "O cabeçalho do CSV possui nomes de colunas duplicados."
     );
   }
 
-  const linhasDados = limiteRegistros > 0
-    ? linhas.slice(1, limiteRegistros + 1)
-    : linhas.slice(1);
-
+  const linhasDados = linhas.slice(1);
   const registros: RegistroTSE[] = [];
 
-  for (
-    let indice = 0;
-    indice < linhasDados.length;
-    indice++
-  ) {
+  for (let indice = 0; indice < linhasDados.length; indice++) {
     const valores = linhasDados[indice];
 
     if (valores.length !== colunas.length) {
@@ -212,11 +170,7 @@ export function lerCSVdoTSE(
 
     const registro: RegistroTSE = {};
 
-    for (
-      let coluna = 0;
-      coluna < colunas.length;
-      coluna++
-    ) {
+    for (let coluna = 0; coluna < colunas.length; coluna++) {
       registro[colunas[coluna]] =
         normalizarValor(valores[coluna]);
     }
@@ -233,9 +187,6 @@ export function lerCSVdoTSE(
   };
 }
 
-/**
- * Atalho para interpretar diretamente os bytes do arquivo.
- */
 export function lerArquivoCSVdoTSE(
   arquivo: Uint8Array,
   limiteRegistros = 0
