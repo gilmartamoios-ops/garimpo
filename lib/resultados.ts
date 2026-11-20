@@ -1,7 +1,9 @@
 
 export type TipoRegistro =
   | "pessoa"
+  | "consumidor"
   | "profissional"
+  | "profissional_vendas_diretas"
   | "empresa"
   | "organizacao"
   | "tema"
@@ -21,6 +23,24 @@ export type NivelCorrespondencia =
   | "provavel"
   | "possivel"
   | "nao_verificada";
+
+export type ClassificacaoPessoa =
+  | "consumidor"
+  | "profissional_em_atividade"
+  | "potencial_profissional"
+  | "nao_classificado";
+
+export type StatusVerificacaoPerfil =
+  | "nao_verificado"
+  | "link_encontrado"
+  | "acessivel"
+  | "indisponivel";
+
+export type TipoContato =
+  | "whatsapp"
+  | "telefone"
+  | "email"
+  | "outro";
 
 export type FonteResultado = {
   id: string;
@@ -50,6 +70,13 @@ export type EventoHistorico = {
   evidenciaId?: string;
 };
 
+export type ContatoResultado = {
+  tipo: TipoContato;
+  valor: string;
+  url?: string;
+  fonteId: string;
+};
+
 export type PerfilInteligente = {
   resumo: string;
   areasRelacionadas: string[];
@@ -65,6 +92,18 @@ export type ResultadoPesquisa = {
   titulo: string;
   descricao: string;
   localizacao?: string;
+
+  // Identificação do perfil individual
+  perfilUrl?: string;
+  plataforma?: string;
+  statusVerificacaoPerfil?: StatusVerificacaoPerfil;
+  verificadoEm?: string;
+
+  // Classificação dentro do GArimpo Vendas Diretas
+  classificacaoPessoa?: ClassificacaoPessoa;
+
+  // Canais de contato encontrados publicamente
+  contatos?: ContatoResultado[];
 
   correspondencia: NivelCorrespondencia;
   justificativaCorrespondencia?: string;
@@ -101,21 +140,85 @@ export type PesquisaExecutada = {
   resultados: ResultadoPesquisa[];
 };
 
+function urlValida(valor?: string): boolean {
+  if (!valor) return false;
+
+  try {
+    const url = new URL(valor);
+
+    return (
+      url.protocol === "https:" ||
+      url.protocol === "http:"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function dataValida(valor?: string): boolean {
+  if (!valor) return false;
+
+  return !Number.isNaN(Date.parse(valor));
+}
+
 export function validarResultado(
   resultado: ResultadoPesquisa
 ): boolean {
-  return (
-    resultado.id.trim() !== "" &&
-    resultado.titulo.trim() !== "" &&
-    resultado.ambienteId.trim() !== "" &&
-    resultado.fontes.length > 0 &&
-    resultado.fontes.every(
-      (fonte) =>
-        fonte.id.trim() !== "" &&
-        fonte.nome.trim() !== "" &&
-        fonte.dataConsulta.trim() !== ""
-    )
+  if (
+    !resultado.id?.trim() ||
+    !resultado.titulo?.trim() ||
+    !resultado.ambienteId?.trim() ||
+    !resultado.fontes?.length ||
+    !resultado.evidencias?.length ||
+    !urlValida(resultado.perfilUrl)
+  ) {
+    return false;
+  }
+
+  // O perfil precisa estar associado a uma fonte identificável.
+  const fontesValidas = resultado.fontes.every(
+    (fonte) =>
+      fonte.id?.trim() !== "" &&
+      fonte.nome?.trim() !== "" &&
+      dataValida(fonte.dataConsulta) &&
+      urlValida(fonte.url)
   );
+
+  if (!fontesValidas) return false;
+
+  const idsFontes = new Set(
+    resultado.fontes.map((fonte) => fonte.id)
+  );
+
+  // Toda evidência precisa apontar para uma fonte existente.
+  const evidenciasValidas = resultado.evidencias.every(
+    (evidencia) =>
+      evidencia.id?.trim() !== "" &&
+      evidencia.descricao?.trim() !== "" &&
+      idsFontes.has(evidencia.fonteId)
+  );
+
+  if (!evidenciasValidas) return false;
+
+  // Todo contato informado precisa ter uma fonte identificada.
+  const contatosValidos = (resultado.contatos ?? []).every(
+    (contato) =>
+      contato.valor?.trim() !== "" &&
+      idsFontes.has(contato.fonteId) &&
+      (!contato.url || urlValida(contato.url))
+  );
+
+  if (!contatosValidos) return false;
+
+  // Eventos históricos precisam apontar para fontes existentes.
+  const historicoValido = resultado.historico.every(
+    (evento) =>
+      !evento.fonteId || idsFontes.has(evento.fonteId)
+  );
+
+  if (!historicoValido) return false;
+
+  return true;
 }
 
 export function validarResultados(
@@ -123,4 +226,3 @@ export function validarResultados(
 ): ResultadoPesquisa[] {
   return resultados.filter(validarResultado);
 }
-
