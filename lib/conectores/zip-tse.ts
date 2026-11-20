@@ -119,10 +119,6 @@ Promise<ResultadoInspecaoZIP> {
   };
 }
 
-/**
- * Extrai somente o CSV do Rio de Janeiro
- * e interpreta os primeiros registros.
- */
 export async function buscarAmostraCandidatosRJ2024TSE(
   limiteRegistros = 20
 ): Promise<ResultadoAmostraTSE> {
@@ -163,6 +159,8 @@ export async function buscarAmostraCandidatosRJ2024TSE(
   let erroExtracao: Error | null = null;
   let totalRecebido = 0;
 
+  const partes: Uint8Array[] = [];
+
   const descompactador = new Unzip((arquivo) => {
     if (arquivo.name !== ARQUIVO_RJ) {
       return;
@@ -181,8 +179,6 @@ export async function buscarAmostraCandidatosRJ2024TSE(
           return;
         }
 
-        // A amostra é pequena. Guardamos apenas o conteúdo
-        // descompactado necessário para interpretar os registros.
         partes.push(dados);
 
         if (final) {
@@ -209,14 +205,14 @@ export async function buscarAmostraCandidatosRJ2024TSE(
         erroExtracao =
           erro instanceof Error
             ? erro
-            : new Error("Erro ao interpretar o CSV do TSE.");
+            : new Error(
+                "Erro ao interpretar o CSV do TSE."
+              );
       }
     };
 
     arquivo.start();
   });
-
-  const partes: Uint8Array[] = [];
 
   descompactador.register(UnzipInflate);
 
@@ -242,6 +238,13 @@ export async function buscarAmostraCandidatosRJ2024TSE(
       }
 
       descompactador.push(value, false);
+
+      // Interrompe o download assim que o CSV do RJ
+      // terminar de ser extraído e interpretado.
+      if (resultado || erroExtracao) {
+        await leitor.cancel();
+        break;
+      }
     }
   } finally {
     leitor.releaseLock();
