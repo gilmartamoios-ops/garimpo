@@ -18,10 +18,7 @@ function obterValores(
 ): string[] {
   return Object.entries(filtros)
     .flatMap(([chave, valor]) => {
-      if (chave === "localizacao") {
-        return [];
-      }
-
+      if (chave === "localizacao") return [];
       return Array.isArray(valor) ? valor : [valor];
     })
     .map((valor) => valor.trim())
@@ -33,9 +30,7 @@ function obterLocalizacao(
 ): string {
   const valor = filtros.localizacao;
 
-  if (Array.isArray(valor)) {
-    return valor.join(" ").trim();
-  }
+  if (Array.isArray(valor)) return valor.join(" ").trim();
 
   return valor?.trim() ?? "";
 }
@@ -44,16 +39,17 @@ function criarConsulta(
   id: string,
   fonte: string,
   objetivo: string,
-  termos: string
+  termos: string,
+  urlPersonalizada?: string
 ): ConsultaWebGerada {
   return {
     id,
     fonte,
     objetivo,
     consulta: termos,
-    url: `https://www.google.com/search?q=${encodeURIComponent(
-      termos
-    )}`,
+    url:
+      urlPersonalizada ??
+      `https://www.google.com/search?q=${encodeURIComponent(termos)}`,
   };
 }
 
@@ -61,11 +57,8 @@ export function montarConsultasWeb(
   solicitacao: SolicitacaoDescobertaWeb
 ): ConsultaWebGerada[] {
   const consultaOriginal = solicitacao.consulta.trim();
-
   const filtros = solicitacao.filtros ?? {};
-
   const valores = obterValores(filtros);
-
   const localizacao = obterLocalizacao(filtros);
 
   const termosBase = [
@@ -95,14 +88,16 @@ export function montarConsultasWeb(
     id: string,
     fonte: string,
     objetivo: string,
-    termos: string
+    termos: string,
+    urlPersonalizada?: string
   ) {
     consultas.push(
       criarConsulta(
         id,
         fonte,
         objetivo,
-        termos.trim()
+        termos.trim(),
+        urlPersonalizada
       )
     );
   }
@@ -166,13 +161,17 @@ export function montarConsultasWeb(
     }
 
     case "empresas": {
+      const consultaMaps =
+        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          termosComLocalizacao
+        )}`;
+
       adicionar(
         "google-mapas",
         "Google Maps",
         "Localizar empresas e estabelecimentos na região",
-        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-          termosComLocalizacao
-        )}`
+        termosComLocalizacao,
+        consultaMaps
       );
 
       adicionar(
@@ -242,14 +241,8 @@ export function montarConsultasWeb(
       break;
     }
 
-    default: {
-      adicionar(
-        "google-geral",
-        "Google",
-        "Pesquisa geral",
-        termosComLocalizacao
-      );
-    }
+    default:
+      break;
   }
 
   return consultas;
