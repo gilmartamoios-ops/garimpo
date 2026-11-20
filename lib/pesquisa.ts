@@ -1,5 +1,9 @@
 
 import { buscarAmbiente } from "./ambientes";
+import {
+  montarConsultasWeb,
+  type ConsultaWebGerada,
+} from "./conectores/consultas-web";
 
 export type {
   ResultadoPesquisa,
@@ -22,6 +26,7 @@ export type PesquisaOrganizada = {
   consultaOriginal: string;
   consultaNormalizada: string;
   filtros: Record<string, string | string[]>;
+  consultasWeb: ConsultaWebGerada[];
   status: "preparada";
   criadaEm: string;
 };
@@ -62,6 +67,12 @@ export function prepararPesquisa(
     );
   }
 
+  const consultasWeb = montarConsultasWeb({
+    ambienteId: ambiente.id,
+    consulta,
+    filtros,
+  });
+
   return {
     id: crypto.randomUUID(),
     ambienteId: ambiente.id,
@@ -72,6 +83,7 @@ export function prepararPesquisa(
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase(),
     filtros,
+    consultasWeb,
     status: "preparada",
     criadaEm: new Date().toISOString(),
   };
