@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { ambientes } from "@/lib/ambientes";
 import { prepararPesquisa } from "@/lib/pesquisa";
+import type { ConsultaWebGerada } from "@/lib/conectores/consultas-web";
 
 export default function Home() {
   const [ambienteSelecionado, setAmbienteSelecionado] = useState(
@@ -19,6 +20,7 @@ export default function Home() {
     ambienteNome: string;
     consultaOriginal: string;
     filtros: Record<string, string | string[]>;
+    consultasWeb: ConsultaWebGerada[];
   } | null>(null);
 
   const [erroPesquisa, setErroPesquisa] = useState("");
@@ -61,6 +63,7 @@ export default function Home() {
         ambienteNome: pesquisa.ambienteNome,
         consultaOriginal: pesquisa.consultaOriginal,
         filtros: pesquisa.filtros,
+        consultasWeb: pesquisa.consultasWeb,
       });
 
       setErroPesquisa("");
@@ -85,6 +88,60 @@ export default function Home() {
 
   const podePrepararPesquisa =
     consulta.trim() !== "" || possuiFiltrosPreenchidos;
+
+  function exibirConsultasWeb() {
+    if (!pesquisaPreparada) return null;
+
+    return (
+      <div className="mt-5">
+        <p className="text-amber-400 text-sm font-semibold">
+          CONSULTAS DE DESCOBERTA GERADAS
+        </p>
+
+        <p className="text-gray-400 text-xs mt-2">
+          Abra os links para consultar as fontes. Nesta etapa, o GArimpo
+          prepara as pesquisas, mas ainda não coleta automaticamente
+          os resultados dessas páginas.
+        </p>
+
+        {pesquisaPreparada.consultasWeb.length === 0 ? (
+          <p className="text-gray-400 text-sm mt-4">
+            Nenhuma consulta externa foi gerada para estes critérios.
+          </p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {pesquisaPreparada.consultasWeb.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-lg border border-white/10 bg-[#080d16] p-4"
+              >
+                <p className="text-white font-semibold text-sm">
+                  {item.fonte}
+                </p>
+
+                <p className="text-gray-400 text-xs mt-1">
+                  {item.objetivo}
+                </p>
+
+                <p className="text-gray-300 text-sm mt-3 break-words">
+                  {item.consulta}
+                </p>
+
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex mt-4 rounded-lg border border-amber-500/40 px-4 py-2 text-sm text-amber-400 hover:bg-amber-500 hover:text-black transition"
+                >
+                  Abrir consulta ↗
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#080d16] text-white">
@@ -228,13 +285,10 @@ export default function Home() {
               </div>
             )}
 
+            {exibirConsultasWeb()}
+
             <p className="text-gray-500 text-xs mt-4 break-all">
               Identificador: {pesquisaPreparada.id}
-            </p>
-
-            <p className="text-gray-400 text-xs mt-3">
-              A pesquisa foi organizada. A conexão com fontes
-              de informação será implementada posteriormente.
             </p>
           </div>
         )}
@@ -369,13 +423,10 @@ export default function Home() {
                     Consulta: {pesquisaPreparada.consultaOriginal}
                   </p>
 
+                  {exibirConsultasWeb()}
+
                   <p className="text-gray-500 text-xs mt-4 break-all">
                     Identificador: {pesquisaPreparada.id}
-                  </p>
-
-                  <p className="text-gray-400 text-xs mt-3">
-                    A pesquisa foi organizada. A conexão com fontes
-                    de informação será implementada posteriormente.
                   </p>
                 </div>
               )}
