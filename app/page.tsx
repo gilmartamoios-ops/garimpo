@@ -6,6 +6,14 @@ import { ambientes } from "@/lib/ambientes";
 import { prepararPesquisa } from "@/lib/pesquisa";
 import type { ConsultaWebGerada } from "@/lib/conectores/consultas-web";
 
+type PesquisaPreparada = {
+  id: string;
+  ambienteNome: string;
+  consultaOriginal: string;
+  filtros: Record<string, string | string[]>;
+  consultasWeb: ConsultaWebGerada[];
+};
+
 export default function Home() {
   const [ambienteSelecionado, setAmbienteSelecionado] = useState(
     ambientes[0]
@@ -15,13 +23,8 @@ export default function Home() {
   const [filtros, setFiltros] = useState<Record<string, string>>({});
   const [janelaPesquisaAberta, setJanelaPesquisaAberta] = useState(false);
 
-  const [pesquisaPreparada, setPesquisaPreparada] = useState<{
-    id: string;
-    ambienteNome: string;
-    consultaOriginal: string;
-    filtros: Record<string, string | string[]>;
-    consultasWeb: ConsultaWebGerada[];
-  } | null>(null);
+  const [pesquisaPreparada, setPesquisaPreparada] =
+    useState<PesquisaPreparada | null>(null);
 
   const [erroPesquisa, setErroPesquisa] = useState("");
 
@@ -49,7 +52,9 @@ export default function Home() {
   function executarPreparacao() {
     try {
       const filtrosPreenchidos = Object.fromEntries(
-        Object.entries(filtros).filter(([, valor]) => valor.trim() !== "")
+        Object.entries(filtros).filter(
+          ([, valor]) => valor.trim() !== ""
+        )
       );
 
       const pesquisa = prepararPesquisa({
@@ -89,19 +94,24 @@ export default function Home() {
   const podePrepararPesquisa =
     consulta.trim() !== "" || possuiFiltrosPreenchidos;
 
+  function formatarValor(valor: string | string[]): string {
+    return Array.isArray(valor) ? valor.join(", ") : valor;
+  }
+
   function exibirConsultasWeb() {
     if (!pesquisaPreparada) return null;
 
     return (
-      <div className="mt-5">
+      <div className="mt-6">
         <p className="text-amber-400 text-sm font-semibold">
           CONSULTAS DE DESCOBERTA GERADAS
         </p>
 
-        <p className="text-gray-400 text-xs mt-2">
-          Abra os links para consultar as fontes. Nesta etapa, o GArimpo
-          prepara as pesquisas, mas ainda não coleta automaticamente
-          os resultados dessas páginas.
+        <p className="text-gray-400 text-xs mt-2 leading-relaxed">
+          O GArimpo preparou pesquisas direcionadas às fontes públicas.
+          Nesta etapa, os links ainda precisam ser abertos manualmente.
+          Os perfis encontrados não são coletados nem verificados
+          automaticamente.
         </p>
 
         {pesquisaPreparada.consultasWeb.length === 0 ? (
@@ -143,6 +153,71 @@ export default function Home() {
     );
   }
 
+  function exibirResumoPesquisa() {
+    if (!pesquisaPreparada) return null;
+
+    return (
+      <div className="mt-8 rounded-xl border border-amber-500/30 bg-[#111c2b] p-5">
+        <p className="text-amber-400 text-sm font-semibold">
+          ÚLTIMA PESQUISA PREPARADA
+        </p>
+
+        <p className="text-white mt-3">
+          Ambiente: {pesquisaPreparada.ambienteNome}
+        </p>
+
+        {pesquisaPreparada.consultaOriginal && (
+          <p className="text-gray-300 mt-2">
+            Descrição: {pesquisaPreparada.consultaOriginal}
+          </p>
+        )}
+
+        {Object.entries(pesquisaPreparada.filtros).length > 0 && (
+          <div className="mt-4">
+            <p className="text-gray-400 text-sm mb-2">
+              Critérios utilizados:
+            </p>
+
+            {Object.entries(pesquisaPreparada.filtros).map(
+              ([id, valor]) => {
+                const filtro = ambienteSelecionado.filtros.find(
+                  (item) => item.id === id
+                );
+
+                return (
+                  <p
+                    key={id}
+                    className="text-gray-300 text-sm mt-1"
+                  >
+                    {filtro?.nome ?? id}: {formatarValor(valor)}
+                  </p>
+                );
+              }
+            )}
+          </div>
+        )}
+
+        <div className="mt-5 rounded-lg bg-[#080d16] border border-white/10 p-4">
+          <p className="text-amber-400 text-xs font-semibold">
+            ETAPA ATUAL DO SISTEMA
+          </p>
+
+          <p className="text-gray-300 text-sm mt-2 leading-relaxed">
+            Pesquisa preparada. A identificação automática, a coleta
+            de perfis individuais e a validação das evidências ainda
+            serão implementadas.
+          </p>
+        </div>
+
+        {exibirConsultasWeb()}
+
+        <p className="text-gray-500 text-xs mt-5 break-all">
+          Identificador: {pesquisaPreparada.id}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#080d16] text-white">
       <header className="flex items-center justify-between px-6 md:px-16 py-5 border-b border-white/10">
@@ -156,12 +231,15 @@ export default function Home() {
           <a href="#inicio" className="hover:text-amber-400">
             Início
           </a>
+
           <a href="#pesquisa" className="hover:text-amber-400">
             Pesquisa
           </a>
+
           <a href="#ambientes" className="hover:text-amber-400">
             Ambientes
           </a>
+
           <a href="#sobre" className="hover:text-amber-400">
             Sobre
           </a>
@@ -190,12 +268,13 @@ export default function Home() {
           </p>
 
           <h1 className="text-3xl md:text-6xl font-semibold tracking-tight">
-            Encontre o que ainda não descobriu.
+            Encontre pessoas. Descubra oportunidades.
           </h1>
 
           <p className="mt-4 max-w-2xl text-gray-200 text-sm md:text-lg">
-            Uma nova maneira de pesquisar, identificar pessoas,
-            descobrir organizações e explorar conexões.
+            Descoberta assistida de consumidores e profissionais
+            de vendas diretas por meio de manifestações públicas
+            na internet.
           </p>
         </div>
       </section>
@@ -210,13 +289,13 @@ export default function Home() {
           </h2>
 
           <p className="text-gray-400 mt-3 text-sm">
-            Escolha um ambiente para iniciar sua pesquisa.
+            Escolha um dos ambientes especializados do GArimpo.
           </p>
         </div>
 
         <div
           id="ambientes"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto"
         >
           {ambientes
             .filter((ambiente) => ambiente.ativo)
@@ -225,17 +304,17 @@ export default function Home() {
                 key={ambiente.id}
                 type="button"
                 onClick={() => selecionarAmbiente(ambiente)}
-                className="text-left rounded-xl border border-white/10 bg-[#111c2b] p-5 transition hover:border-amber-400 hover:bg-amber-500/10 active:scale-[0.99]"
+                className="text-left rounded-xl border border-white/10 bg-[#111c2b] p-6 transition hover:border-amber-400 hover:bg-amber-500/10 active:scale-[0.99]"
               >
                 <h3 className="font-semibold text-lg text-amber-400">
                   {ambiente.nome}
                 </h3>
 
-                <p className="text-gray-400 text-sm mt-2 leading-relaxed">
+                <p className="text-gray-400 text-sm mt-3 leading-relaxed">
                   {ambiente.descricao}
                 </p>
 
-                <div className="flex items-center justify-between mt-5">
+                <div className="flex items-center justify-between mt-6">
                   <span className="text-xs text-amber-300">
                     Iniciar pesquisa
                   </span>
@@ -248,50 +327,7 @@ export default function Home() {
             ))}
         </div>
 
-        {pesquisaPreparada && (
-          <div className="mt-8 rounded-xl border border-amber-500/30 bg-[#111c2b] p-5">
-            <p className="text-amber-400 text-sm font-semibold">
-              ÚLTIMA PESQUISA PREPARADA
-            </p>
-
-            <p className="text-white mt-3">
-              Ambiente: {pesquisaPreparada.ambienteNome}
-            </p>
-
-            <p className="text-gray-300 mt-2">
-              Consulta: {pesquisaPreparada.consultaOriginal}
-            </p>
-
-            {Object.entries(pesquisaPreparada.filtros).length > 0 && (
-              <div className="mt-4">
-                <p className="text-gray-400 text-sm mb-2">
-                  Critérios utilizados:
-                </p>
-
-                {Object.entries(pesquisaPreparada.filtros).map(
-                  ([id, valor]) => {
-                    const filtro = ambienteSelecionado.filtros.find(
-                      (item) => item.id === id
-                    );
-
-                    return (
-                      <p key={id} className="text-gray-300 text-sm mt-1">
-                        {filtro?.nome ?? id}:{" "}
-                        {Array.isArray(valor) ? valor.join(", ") : valor}
-                      </p>
-                    );
-                  }
-                )}
-              </div>
-            )}
-
-            {exibirConsultasWeb()}
-
-            <p className="text-gray-500 text-xs mt-4 break-all">
-              Identificador: {pesquisaPreparada.id}
-            </p>
-          </div>
-        )}
+        {!janelaPesquisaAberta && exibirResumoPesquisa()}
       </section>
 
       {janelaPesquisaAberta && (
@@ -309,7 +345,7 @@ export default function Home() {
             <div className="flex items-center justify-between p-5 md:p-7 border-b border-white/10">
               <div>
                 <p className="text-amber-400 text-xs font-semibold tracking-widest">
-                  GArimpo · PESQUISA
+                  GArimpo · VENDAS DIRETAS
                 </p>
 
                 <h2
@@ -377,6 +413,10 @@ export default function Home() {
                           title={filtro.descricao}
                           className="w-full bg-[#080d16] border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-gray-500 outline-none focus:border-amber-500"
                         />
+
+                        <p className="text-gray-500 text-xs mt-1">
+                          {filtro.descricao}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -410,17 +450,15 @@ export default function Home() {
               )}
 
               {pesquisaPreparada && (
-                <div className="mt-5 rounded-xl border border-amber-500/30 bg-[#080d16] p-5">
+                <div className="mt-6 rounded-xl border border-amber-500/30 bg-[#080d16] p-5">
                   <p className="text-amber-400 text-sm font-semibold">
                     PESQUISA PREPARADA
                   </p>
 
-                  <p className="text-white mt-3">
-                    Ambiente: {pesquisaPreparada.ambienteNome}
-                  </p>
-
-                  <p className="text-gray-300 mt-2">
-                    Consulta: {pesquisaPreparada.consultaOriginal}
+                  <p className="text-gray-300 text-sm mt-3 leading-relaxed">
+                    Os critérios foram organizados e as consultas externas
+                    foram geradas. Ainda não existem perfis coletados
+                    automaticamente nesta etapa.
                   </p>
 
                   {exibirConsultasWeb()}
@@ -461,7 +499,7 @@ export default function Home() {
         <h2 className="text-xl font-semibold">GArimpo</h2>
 
         <p className="text-gray-400 text-sm mt-2">
-          Inteligência de busca, descoberta e identificação.
+          Inteligência de descoberta e identificação de perfis individuais.
         </p>
 
         <p className="text-gray-600 text-xs mt-6">
