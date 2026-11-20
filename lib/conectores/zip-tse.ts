@@ -37,11 +37,22 @@ export type ResultadoAmostraTSE = {
   fonte: string;
   arquivo: string;
   estado: string;
+  municipio: string | null;
   quantidadeRegistros: number;
   quantidadeColunas: number;
   colunas: string[];
   registros: ResultadoLeituraTSE["registros"];
 };
+
+function normalizarMunicipio(
+  municipio: string
+): string {
+  return municipio
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLocaleUpperCase("pt-BR");
+}
 
 export async function inspecionarZIPCandidatos2024TSE():
 Promise<ResultadoInspecaoZIP> {
@@ -120,7 +131,8 @@ Promise<ResultadoInspecaoZIP> {
 }
 
 export async function buscarAmostraCandidatosRJ2024TSE(
-  limiteRegistros = 20
+  limiteRegistros = 20,
+  municipio?: string
 ): Promise<ResultadoAmostraTSE> {
   if (
     !Number.isInteger(limiteRegistros) ||
@@ -131,6 +143,25 @@ export async function buscarAmostraCandidatosRJ2024TSE(
       "O limite deve estar entre 1 e 100 registros."
     );
   }
+
+  const municipioInformado = municipio?.trim() ?? "";
+
+  if (
+    municipio !== undefined &&
+    (
+      municipioInformado.length < 2 ||
+      municipioInformado.length > 100
+    )
+  ) {
+    throw new Error(
+      "Informe um município válido, com pelo menos 2 caracteres."
+    );
+  }
+
+  const municipioNormalizado =
+    municipioInformado
+      ? normalizarMunicipio(municipioInformado)
+      : null;
 
   const resposta = await fetch(
     ARQUIVO_CANDIDATOS_2024,
@@ -203,10 +234,15 @@ export async function buscarAmostraCandidatosRJ2024TSE(
             posicao += parte.length;
           }
 
-          estado.resultado = lerArquivoCSVdoTSE(
-            conteudo,
-            limiteRegistros
-          );
+          // Sem município: mantém a amostra original.
+          // Com município: lê o CSV estadual para filtrar
+          // antes de aplicar o limite de registros.
+          estado.resultado = municipioNormalizado
+            ? lerArquivoCSVdoTSE(conteudo)
+            : lerArquivoCSVdoTSE(
+                conteudo,
+                limiteRegistros
+              );
         }
       } catch (erro) {
         estado.erroExtracao =
@@ -246,7 +282,6 @@ export async function buscarAmostraCandidatosRJ2024TSE(
 
       descompactador.push(value, false);
 
-      // Interrompe a leitura quando a extração do RJ termina.
       if (
         estado.resultado ||
         estado.erroExtracao
@@ -277,16 +312,40 @@ export async function buscarAmostraCandidatosRJ2024TSE(
     );
   }
 
+  if (
+    municipioNormalizado &&
+    !resultadoFinal.colunas.includes("NM_UE")
+  ) {
+    throw new Error(
+      "O arquivo do TSE não possui a coluna NM_UE necessária para filtrar municípios."
+    );
+  }
+
+  const registrosFiltrados = municipioNormalizado
+    ? resultadoFinal.registros.filter((registro) => {
+        const nomeMunicipio = registro.NM_UE ?? "";
+
+        return (
+          normalizarMunicipio(nomeMunicipio) ===
+          municipioNormalizado
+        );
+      })
+    : resultadoFinal.registros;
+
+  const registros = registrosFiltrados.slice(
+    0,
+    limiteRegistros
+  );
+
   return {
     sucesso: true,
     fonte: "TSE - Dados Abertos",
     arquivo: ARQUIVO_RJ,
     estado: "RJ",
-    quantidadeRegistros:
-      resultadoFinal.quantidadeRegistros,
-    quantidadeColunas:
-      resultadoFinal.quantidadeColunas,
+    municipio: municipioInformado || null,
+    quantidadeRegistros: registros.length,
+    quantidadeColunas: resultadoFinal.quantidadeColunas,
     colunas: resultadoFinal.colunas,
-    registros: resultadoFinal.registros,
+    registros,
   };
 }
