@@ -2,121 +2,67 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import {
-  buscarAmostraCandidatosRJ2024TSE,
-} from "@/lib/conectores/zip-tse";
+  buscarConjuntosTSE,
+} from "@/lib/conectores/tse";
 
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-const CAMPOS_PUBLICOS = [
-  "ANO_ELEICAO",
-  "SG_UF",
-  "NM_UE",
-  "DS_CARGO",
-  "NR_CANDIDATO",
-  "NM_CANDIDATO",
-  "NM_URNA_CANDIDATO",
-  "SG_PARTIDO",
-  "DS_SITUACAO_CANDIDATURA",
-];
 
 export async function GET(request: NextRequest) {
   try {
-    const parametros = request.nextUrl.searchParams;
+    const { searchParams } = request.nextUrl;
 
-    const limiteInformado = parametros.get("limite");
-    const municipioInformado = parametros.get("municipio");
+    const consulta = searchParams.get("q") ?? "";
 
-    const limite =
-      limiteInformado === null
-        ? 20
-        : Number(limiteInformado);
+    const limiteInformado = Number(
+      searchParams.get("limite") ?? 10
+    );
 
-    if (
-      !Number.isInteger(limite) ||
-      limite < 1 ||
-      limite > 100
-    ) {
+    const paginaInformada = Number(
+      searchParams.get("pagina") ?? 1
+    );
+
+    if (consulta.trim().length < 2) {
       return NextResponse.json(
         {
           sucesso: false,
           mensagem:
-            "O limite deve ser um número inteiro entre 1 e 100.",
+            "Informe pelo menos dois caracteres para pesquisar no TSE.",
         },
         { status: 400 }
       );
     }
 
-    const municipio = municipioInformado?.trim() ?? "";
+    const limite = Number.isFinite(limiteInformado)
+      ? Math.min(25, Math.max(1, Math.floor(limiteInformado)))
+      : 10;
 
-    if (
-      municipioInformado !== null &&
-      (
-        municipio.length < 2 ||
-        municipio.length > 100
-      )
-    ) {
-      return NextResponse.json(
-        {
-          sucesso: false,
-          mensagem:
-            "Informe um município válido, com pelo menos 2 caracteres e no máximo 100.",
-        },
-        { status: 400 }
-      );
-    }
+    const pagina = Number.isFinite(paginaInformada)
+      ? Math.max(1, Math.floor(paginaInformada))
+      : 1;
 
-    const resultado =
-      await buscarAmostraCandidatosRJ2024TSE(
-        limite,
-        municipio || undefined
-      );
-
-    const colunasDisponiveis =
-      CAMPOS_PUBLICOS.filter((campo) =>
-        resultado.colunas.includes(campo)
-      );
-
-    const registros = resultado.registros.map(
-      (registro) => {
-        const registroPublico: Record<
-          string,
-          string | null
-        > = {};
-
-        for (const campo of colunasDisponiveis) {
-          registroPublico[campo] =
-            registro[campo] ?? null;
-        }
-
-        return registroPublico;
-      }
+    const pesquisa = await buscarConjuntosTSE(
+      consulta,
+      limite,
+      pagina
     );
 
     return NextResponse.json({
       sucesso: true,
-      fonte: resultado.fonte,
-      arquivo: resultado.arquivo,
-      estado: resultado.estado,
-      municipio: resultado.municipio,
-      quantidadeRegistros: registros.length,
-      quantidadeColunas: colunasDisponiveis.length,
-      colunas: colunasDisponiveis,
-      registros,
+      fonte: "TSE - Dados Abertos",
+      consulta: pesquisa.consulta,
+      quantidadeTotal: pesquisa.quantidadeTotal,
+      quantidadeRetornada: pesquisa.resultados.length,
+      pagina,
+      resultados: pesquisa.resultados,
     });
   } catch (erro) {
-    console.error(
-      "Erro ao consultar amostra de candidatos do TSE:",
-      erro
-    );
+    console.error("Erro na integração TSE:", erro);
 
     return NextResponse.json(
       {
         sucesso: false,
         mensagem:
-          erro instanceof Error
-            ? erro.message
-            : "Não foi possível consultar os candidatos do TSE.",
+          "Não foi possível consultar os dados abertos do TSE.",
       },
       { status: 502 }
     );
