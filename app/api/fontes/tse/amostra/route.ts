@@ -23,7 +23,9 @@ const CAMPOS_PUBLICOS = [
 export async function GET(request: NextRequest) {
   try {
     const parametros = request.nextUrl.searchParams;
+
     const limiteInformado = parametros.get("limite");
+    const municipioInformado = parametros.get("municipio");
 
     const limite =
       limiteInformado === null
@@ -45,8 +47,30 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const municipio = municipioInformado?.trim() ?? "";
+
+    if (
+      municipioInformado !== null &&
+      (
+        municipio.length < 2 ||
+        municipio.length > 100
+      )
+    ) {
+      return NextResponse.json(
+        {
+          sucesso: false,
+          mensagem:
+            "Informe um município válido, com pelo menos 2 caracteres e no máximo 100.",
+        },
+        { status: 400 }
+      );
+    }
+
     const resultado =
-      await buscarAmostraCandidatosRJ2024TSE(limite);
+      await buscarAmostraCandidatosRJ2024TSE(
+        limite,
+        municipio || undefined
+      );
 
     const colunasDisponiveis =
       CAMPOS_PUBLICOS.filter((campo) =>
@@ -74,6 +98,7 @@ export async function GET(request: NextRequest) {
       fonte: resultado.fonte,
       arquivo: resultado.arquivo,
       estado: resultado.estado,
+      municipio: resultado.municipio,
       quantidadeRegistros: registros.length,
       quantidadeColunas: colunasDisponiveis.length,
       colunas: colunasDisponiveis,
