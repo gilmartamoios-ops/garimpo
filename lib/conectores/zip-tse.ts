@@ -154,9 +154,16 @@ export async function buscarAmostraCandidatosRJ2024TSE(
     );
   }
 
-  let resultado: ResultadoLeituraTSE | null = null;
-  let arquivoEncontrado = false;
-  let erroExtracao: Error | null = null;
+  const estado: {
+    resultado: ResultadoLeituraTSE | null;
+    arquivoEncontrado: boolean;
+    erroExtracao: Error | null;
+  } = {
+    resultado: null,
+    arquivoEncontrado: false,
+    erroExtracao: null,
+  };
+
   let totalRecebido = 0;
 
   const partes: Uint8Array[] = [];
@@ -166,16 +173,16 @@ export async function buscarAmostraCandidatosRJ2024TSE(
       return;
     }
 
-    arquivoEncontrado = true;
+    estado.arquivoEncontrado = true;
 
     arquivo.ondata = (erro, dados, final) => {
       if (erro) {
-        erroExtracao = erro;
+        estado.erroExtracao = erro;
         return;
       }
 
       try {
-        if (resultado) {
+        if (estado.resultado) {
           return;
         }
 
@@ -196,13 +203,13 @@ export async function buscarAmostraCandidatosRJ2024TSE(
             posicao += parte.length;
           }
 
-          resultado = lerArquivoCSVdoTSE(
+          estado.resultado = lerArquivoCSVdoTSE(
             conteudo,
             limiteRegistros
           );
         }
       } catch (erro) {
-        erroExtracao =
+        estado.erroExtracao =
           erro instanceof Error
             ? erro
             : new Error(
@@ -239,9 +246,11 @@ export async function buscarAmostraCandidatosRJ2024TSE(
 
       descompactador.push(value, false);
 
-      // Interrompe o download assim que o CSV do RJ
-      // terminar de ser extraído e interpretado.
-      if (resultado || erroExtracao) {
+      // Interrompe a leitura quando a extração do RJ termina.
+      if (
+        estado.resultado ||
+        estado.erroExtracao
+      ) {
         await leitor.cancel();
         break;
       }
@@ -250,17 +259,19 @@ export async function buscarAmostraCandidatosRJ2024TSE(
     leitor.releaseLock();
   }
 
-  if (erroExtracao) {
-    throw erroExtracao;
+  if (estado.erroExtracao) {
+    throw estado.erroExtracao;
   }
 
-  if (!arquivoEncontrado) {
+  if (!estado.arquivoEncontrado) {
     throw new Error(
       "O CSV de candidaturas do Rio de Janeiro não foi encontrado no ZIP."
     );
   }
 
-  if (!resultado) {
+  const resultadoFinal = estado.resultado;
+
+  if (!resultadoFinal) {
     throw new Error(
       "Não foi possível concluir a extração do CSV do Rio de Janeiro."
     );
@@ -271,9 +282,11 @@ export async function buscarAmostraCandidatosRJ2024TSE(
     fonte: "TSE - Dados Abertos",
     arquivo: ARQUIVO_RJ,
     estado: "RJ",
-    quantidadeRegistros: resultado.quantidadeRegistros,
-    quantidadeColunas: resultado.quantidadeColunas,
-    colunas: resultado.colunas,
-    registros: resultado.registros,
+    quantidadeRegistros:
+      resultadoFinal.quantidadeRegistros,
+    quantidadeColunas:
+      resultadoFinal.quantidadeColunas,
+    colunas: resultadoFinal.colunas,
+    registros: resultadoFinal.registros,
   };
 }
