@@ -6,28 +6,41 @@ import {
   UnzipInflate,
 } from "fflate";
 
+import {
+  lerArquivoCSVdoTSE,
+  type ResultadoLeituraTSE,
+} from "@/lib/conectores/leitor-csv-tse";
+
 const ARQUIVO_CANDIDATOS_2024 =
   "https://cdn.tse.jus.br/estatistica/sead/odsele/consulta_cand/consulta_cand_2024.zip";
+
+const ARQUIVO_RJ =
+  "consulta_cand_2024_RJ.csv";
 
 const LIMITE_DOWNLOAD_BYTES =
   120 * 1024 * 1024;
 
-const LIMITE_ARQUIVOS =
-  200;
-
-export type ArquivoDentroZIP = {
-  nome: string;
-  tamanhoCompactado: number | null;
-  tamanhoOriginal: number | null;
-};
-
 export type ResultadoInspecaoZIP = {
   sucesso: boolean;
   fonte: string;
-  endereco: string;
   quantidadeArquivos: number;
   quantidadeCSVs: number;
-  arquivos: ArquivoDentroZIP[];
+  arquivos: {
+    nome: string;
+    tamanhoCompactado: number | null;
+    tamanhoOriginal: number | null;
+  }[];
+};
+
+export type ResultadoAmostraTSE = {
+  sucesso: boolean;
+  fonte: string;
+  arquivo: string;
+  estado: string;
+  quantidadeRegistros: number;
+  quantidadeColunas: number;
+  colunas: string[];
+  registros: ResultadoLeituraTSE["registros"];
 };
 
 export async function inspecionarZIPCandidatos2024TSE():
@@ -36,53 +49,34 @@ Promise<ResultadoInspecaoZIP> {
     ARQUIVO_CANDIDATOS_2024,
     {
       cache: "no-store",
-      headers: {
-        Accept: "application/zip, application/octet-stream",
-      },
     }
   );
 
-  if (!resposta.ok) {
+  if (!resposta.ok || !resposta.body) {
     throw new Error(
-      `Falha ao baixar ZIP do TSE: HTTP ${resposta.status}`
-    );
-  }
-
-  if (!resposta.body) {
-    throw new Error(
-      "O servidor do TSE não disponibilizou o fluxo do arquivo ZIP."
+      `Não foi possível acessar o ZIP do TSE: HTTP ${resposta.status}`
     );
   }
 
   const tamanhoInformado =
     Number(resposta.headers.get("content-length") ?? 0);
 
-  if (
-    tamanhoInformado > LIMITE_DOWNLOAD_BYTES
-  ) {
+  if (tamanhoInformado > LIMITE_DOWNLOAD_BYTES) {
     throw new Error(
-      "O arquivo ZIP ultrapassa o limite de segurança de 120 MB."
+      "O ZIP ultrapassa o limite de segurança de 120 MB."
     );
   }
 
-  const arquivos: ArquivoDentroZIP[] = [];
+  const arquivos: ResultadoInspecaoZIP["arquivos"] = [];
 
   const descompactador = new Unzip((arquivo) => {
-    if (arquivos.length >= LIMITE_ARQUIVOS) {
-      return;
-    }
-
     arquivos.push({
       nome: arquivo.name,
-      tamanhoCompactado:
-        arquivo.size ?? null,
-      tamanhoOriginal:
-        arquivo.originalSize ?? null,
+      tamanhoCompactado: arquivo.size ?? null,
+      tamanhoOriginal: arquivo.originalSize ?? null,
     });
   });
 
-  // Registra suporte ao método DEFLATE.
-  // Nesta etapa não extraímos o conteúdo dos arquivos.
   descompactador.register(UnzipInflate);
 
   const leitor = resposta.body.getReader();
@@ -91,50 +85,192 @@ Promise<ResultadoInspecaoZIP> {
 
   try {
     while (true) {
-      const { done, value } =
-        await leitor.read();
+      const { done, value } = await leitor.read();
 
       if (done) {
-        descompactador.push(
-          new Uint8Array(0),
-          true
-        );
-
+        descompactador.push(new Uint8Array(0), true);
         break;
       }
 
       totalRecebido += value.byteLength;
 
-      if (
-        totalRecebido > LIMITE_DOWNLOAD_BYTES
-      ) {
+      if (totalRecebido > LIMITE_DOWNLOAD_BYTES) {
         await leitor.cancel();
 
         throw new Error(
-          "O download ultrapassou o limite de segurança de 120 MB."
+          "O download ultrapassou 120 MB."
         );
       }
 
-      descompactador.push(
-        new Uint8Array(value),
-        false
-      );
+      descompactador.push(value, false);
     }
   } finally {
     leitor.releaseLock();
   }
 
-  const arquivosCSV = arquivos.filter(
-    (arquivo) =>
-      arquivo.nome.toLowerCase().endsWith(".csv")
+  return {
+    sucesso: true,
+    fonte: "TSE - Dados Abertos",
+    quantidadeArquivos: arquivos.length,
+    quantidadeCSVs: arquivos.filter(
+      (arquivo) => arquivo.nome.toLowerCase().endsWith(".csv")
+    ).length,
+    arquivos,
+  };
+}
+
+/**
+ * Extrai somente o CSV do Rio de Janeiro
+ * e interpreta os primeiros registros.
+ */
+export async function buscarAmostraCandidatosRJ2024TSE(
+  limiteRegistros = 20
+): Promise<ResultadoAmostraTSE> {
+  if (
+    !Number.isInteger(limiteRegistros) ||
+    limiteRegistros < 1 ||
+    limiteRegistros > 100
+  ) {
+    throw new Error(
+      "O limite deve estar entre 1 e 100 registros."
+    );
+  }
+
+  const resposta = await fetch(
+    ARQUIVO_CANDIDATOS_2024,
+    {
+      cache: "no-store",
+    }
   );
+
+  if (!resposta.ok || !resposta.body) {
+    throw new Error(
+      `Falha ao acessar o ZIP do TSE: HTTP ${resposta.status}`
+    );
+  }
+
+  const tamanhoInformado =
+    Number(resposta.headers.get("content-length") ?? 0);
+
+  if (tamanhoInformado > LIMITE_DOWNLOAD_BYTES) {
+    throw new Error(
+      "O ZIP ultrapassa o limite de segurança de 120 MB."
+    );
+  }
+
+  let resultado: ResultadoLeituraTSE | null = null;
+  let arquivoEncontrado = false;
+  let erroExtracao: Error | null = null;
+  let totalRecebido = 0;
+
+  const descompactador = new Unzip((arquivo) => {
+    if (arquivo.name !== ARQUIVO_RJ) {
+      return;
+    }
+
+    arquivoEncontrado = true;
+
+    arquivo.ondata = (erro, dados, final) => {
+      if (erro) {
+        erroExtracao = erro;
+        return;
+      }
+
+      try {
+        if (resultado) {
+          return;
+        }
+
+        // A amostra é pequena. Guardamos apenas o conteúdo
+        // descompactado necessário para interpretar os registros.
+        partes.push(dados);
+
+        if (final) {
+          const tamanho = partes.reduce(
+            (total, parte) => total + parte.length,
+            0
+          );
+
+          const conteudo = new Uint8Array(tamanho);
+
+          let posicao = 0;
+
+          for (const parte of partes) {
+            conteudo.set(parte, posicao);
+            posicao += parte.length;
+          }
+
+          resultado = lerArquivoCSVdoTSE(
+            conteudo,
+            limiteRegistros
+          );
+        }
+      } catch (erro) {
+        erroExtracao =
+          erro instanceof Error
+            ? erro
+            : new Error("Erro ao interpretar o CSV do TSE.");
+      }
+    };
+
+    arquivo.start();
+  });
+
+  const partes: Uint8Array[] = [];
+
+  descompactador.register(UnzipInflate);
+
+  const leitor = resposta.body.getReader();
+
+  try {
+    while (true) {
+      const { done, value } = await leitor.read();
+
+      if (done) {
+        descompactador.push(new Uint8Array(0), true);
+        break;
+      }
+
+      totalRecebido += value.byteLength;
+
+      if (totalRecebido > LIMITE_DOWNLOAD_BYTES) {
+        await leitor.cancel();
+
+        throw new Error(
+          "O download ultrapassou 120 MB."
+        );
+      }
+
+      descompactador.push(value, false);
+    }
+  } finally {
+    leitor.releaseLock();
+  }
+
+  if (erroExtracao) {
+    throw erroExtracao;
+  }
+
+  if (!arquivoEncontrado) {
+    throw new Error(
+      "O CSV de candidaturas do Rio de Janeiro não foi encontrado no ZIP."
+    );
+  }
+
+  if (!resultado) {
+    throw new Error(
+      "Não foi possível concluir a extração do CSV do Rio de Janeiro."
+    );
+  }
 
   return {
     sucesso: true,
     fonte: "TSE - Dados Abertos",
-    endereco: ARQUIVO_CANDIDATOS_2024,
-    quantidadeArquivos: arquivos.length,
-    quantidadeCSVs: arquivosCSV.length,
-    arquivos,
+    arquivo: ARQUIVO_RJ,
+    estado: "RJ",
+    quantidadeRegistros: resultado.quantidadeRegistros,
+    quantidadeColunas: resultado.quantidadeColunas,
+    colunas: resultado.colunas,
+    registros: resultado.registros,
   };
 }
