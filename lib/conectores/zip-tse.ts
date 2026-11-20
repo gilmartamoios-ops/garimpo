@@ -38,16 +38,15 @@ export type ResultadoAmostraTSE = {
   arquivo: string;
   estado: string;
   municipio: string | null;
+  cargo: string | null;
   quantidadeRegistros: number;
   quantidadeColunas: number;
   colunas: string[];
   registros: ResultadoLeituraTSE["registros"];
 };
 
-function normalizarMunicipio(
-  municipio: string
-): string {
-  return municipio
+function normalizarTexto(valor: string): string {
+  return valor
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
@@ -132,7 +131,8 @@ Promise<ResultadoInspecaoZIP> {
 
 export async function buscarAmostraCandidatosRJ2024TSE(
   limiteRegistros = 20,
-  municipio?: string
+  municipio?: string,
+  cargo?: string
 ): Promise<ResultadoAmostraTSE> {
   if (
     !Number.isInteger(limiteRegistros) ||
@@ -145,6 +145,7 @@ export async function buscarAmostraCandidatosRJ2024TSE(
   }
 
   const municipioInformado = municipio?.trim() ?? "";
+  const cargoInformado = cargo?.trim() ?? "";
 
   if (
     municipio !== undefined &&
@@ -158,9 +159,26 @@ export async function buscarAmostraCandidatosRJ2024TSE(
     );
   }
 
+  if (
+    cargo !== undefined &&
+    (
+      cargoInformado.length < 3 ||
+      cargoInformado.length > 50
+    )
+  ) {
+    throw new Error(
+      "Informe um cargo válido, com pelo menos 3 caracteres."
+    );
+  }
+
   const municipioNormalizado =
     municipioInformado
-      ? normalizarMunicipio(municipioInformado)
+      ? normalizarTexto(municipioInformado)
+      : null;
+
+  const cargoNormalizado =
+    cargoInformado
+      ? normalizarTexto(cargoInformado)
       : null;
 
   const resposta = await fetch(
@@ -234,15 +252,13 @@ export async function buscarAmostraCandidatosRJ2024TSE(
             posicao += parte.length;
           }
 
-          // Sem município: mantém a amostra original.
-          // Com município: lê o CSV estadual para filtrar
-          // antes de aplicar o limite de registros.
-          estado.resultado = municipioNormalizado
-            ? lerArquivoCSVdoTSE(conteudo)
-            : lerArquivoCSVdoTSE(
-                conteudo,
-                limiteRegistros
-              );
+          estado.resultado =
+            municipioNormalizado || cargoNormalizado
+              ? lerArquivoCSVdoTSE(conteudo)
+              : lerArquivoCSVdoTSE(
+                  conteudo,
+                  limiteRegistros
+                );
         }
       } catch (erro) {
         estado.erroExtracao =
@@ -321,16 +337,32 @@ export async function buscarAmostraCandidatosRJ2024TSE(
     );
   }
 
-  const registrosFiltrados = municipioNormalizado
-    ? resultadoFinal.registros.filter((registro) => {
-        const nomeMunicipio = registro.NM_UE ?? "";
+  if (
+    cargoNormalizado &&
+    !resultadoFinal.colunas.includes("DS_CARGO")
+  ) {
+    throw new Error(
+      "O arquivo do TSE não possui a coluna DS_CARGO necessária para filtrar cargos."
+    );
+  }
 
-        return (
-          normalizarMunicipio(nomeMunicipio) ===
-          municipioNormalizado
-        );
-      })
-    : resultadoFinal.registros;
+  let registrosFiltrados = resultadoFinal.registros;
+
+  if (municipioNormalizado) {
+    registrosFiltrados = registrosFiltrados.filter(
+      (registro) =>
+        normalizarTexto(registro.NM_UE ?? "") ===
+        municipioNormalizado
+    );
+  }
+
+  if (cargoNormalizado) {
+    registrosFiltrados = registrosFiltrados.filter(
+      (registro) =>
+        normalizarTexto(registro.DS_CARGO ?? "") ===
+        cargoNormalizado
+    );
+  }
 
   const registros = registrosFiltrados.slice(
     0,
@@ -343,6 +375,7 @@ export async function buscarAmostraCandidatosRJ2024TSE(
     arquivo: ARQUIVO_RJ,
     estado: "RJ",
     municipio: municipioInformado || null,
+    cargo: cargoInformado || null,
     quantidadeRegistros: registros.length,
     quantidadeColunas: resultadoFinal.quantidadeColunas,
     colunas: resultadoFinal.colunas,
