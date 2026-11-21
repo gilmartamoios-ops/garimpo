@@ -1,232 +1,90 @@
-# GArimpo — Painel de Administração Master
+## Diretriz de Experiência — Simplicidade e Inteligência
 
-## 1. Objetivo
+A experiência de utilização do GArimpo deverá seguir um princípio fundamental:
 
-O GArimpo-Master será o centro de administração e controle da plataforma.
+**A complexidade pertence ao sistema, não ao usuário.**
 
-Seu objetivo é permitir que o administrador principal acompanhe e gerencie usuários, utilização, fontes de informação, configurações e funcionamento geral do GArimpo.
+O GArimpo deverá executar internamente o trabalho de interpretação, organização, combinação de filtros, seleção de fontes, preparação de consultas, análise de resultados, identificação de perfis e organização de evidências.
 
-O painel será exclusivo do administrador autorizado.
+O consultor deverá informar essencialmente o que procura, selecionar o ambiente correspondente e iniciar o garimpo.
 
-## 2. Acesso
+A interface não deverá exigir conhecimento técnico sobre fontes, conectores, estratégias de busca ou parâmetros internos.
 
-O painel será disponibilizado pela rota:
+### 1. Objetividade
 
-`/master`
+- Minimizar a quantidade de cliques.
+- Reduzir a digitação.
+- Evitar alternativas desnecessárias.
+- Não apresentar configurações técnicas ao usuário comum.
+- Automatizar decisões que possam ser tomadas com segurança pelo sistema.
+- Utilizar linguagem simples e direta.
+- Apresentar apenas as informações relevantes para cada etapa.
 
-O acesso dependerá de:
+### 2. Inteligência automatizada
 
-- Autenticação válida.
-- Conta ativa.
-- Papel de acesso `master`.
-- Autorização verificada no servidor.
+O sistema deverá interpretar a solicitação e determinar automaticamente as estratégias de pesquisa mais adequadas.
 
-Não será suficiente conhecer o endereço da página para acessar o painel.
+Deverá aproveitar filtros, informações contextuais e fontes disponíveis sem obrigar o consultor a selecionar manualmente cada recurso.
 
-Usuários comuns não poderão acessar as funções administrativas, mesmo que tentem manipular a URL ou as requisições.
+Quando uma informação indispensável estiver ausente, poderá solicitar esclarecimento pontual. Não deverá transformar toda pesquisa em um questionário extenso.
 
-## 3. Visão geral
+### 3. Apresentação dos resultados
 
-A página inicial do Master deverá apresentar indicadores gerais:
+A tela de resultados deverá priorizar:
 
-- Total de usuários cadastrados.
-- Usuários ativos.
-- Usuários bloqueados.
-- Pesquisas realizadas no dia.
-- Consumo total da plataforma.
-- Fontes habilitadas.
-- Situação operacional da plataforma.
-- Estado do modo de manutenção.
+- Identificação do perfil.
+- Localização, quando disponível.
+- Motivo pelo qual o perfil foi encontrado.
+- Evidência que sustenta a correspondência.
+- Link direto para a fonte ou perfil.
+- Data da evidência.
+- Grau de correspondência e limitações.
 
-Os indicadores deverão ser atualizados a partir dos dados reais do banco de dados.
+Informações complementares, histórico, demais evidências e detalhes técnicos poderão ser consultados sob demanda.
 
-## 4. Administração de usuários
+A simplificação visual nunca deverá eliminar a rastreabilidade ou ocultar incertezas importantes.
 
-O Master poderá cadastrar e administrar usuários.
+### 4. Experiência móvel
 
-Cada usuário terá:
+O projeto deverá ser pensado prioritariamente para uso em celulares.
 
-- Nome.
-- E-mail.
-- Identificador único.
-- Data de cadastro.
-- Papel de acesso.
-- Situação da conta.
-- Limite diário.
-- Consumo atual.
+A interface deverá:
 
-### Ações disponíveis
+- Evitar rolagem vertical excessiva.
+- Evitar menus extensos e telas com muitos controles.
+- Priorizar ações principais visíveis.
+- Organizar informações em blocos compactos.
+- Utilizar navegação simples.
+- Evitar tabelas largas.
+- Permitir consulta de detalhes sem carregar toda a informação de uma vez.
+- Manter botões e elementos interativos adequados ao toque.
 
-- Criar usuário.
-- Editar informações cadastrais.
-- Ativar conta.
-- Bloquear conta.
-- Reativar conta.
-- Consultar histórico.
-- Alterar limite diário.
+Sempre que possível, as tarefas principais deverão ser concluídas em uma única tela ou em poucas etapas curtas.
 
-O bloqueio de uma conta deverá impedir novas operações, preservando os dados e históricos já existentes.
+### 5. Identidade visual
 
-## 5. Controle de limites
+O painel deverá respeitar a identidade visual estabelecida pelo banner oficial do GArimpo.
 
-O Master será o único responsável pela definição dos limites individuais.
+Cores, tipografia, proporções, elementos gráficos e hierarquia visual deverão ser coerentes com a marca.
 
-O painel deverá permitir:
+A interface não deverá competir visualmente com o banner ou utilizar elementos decorativos que prejudiquem a leitura.
 
-- Definir limite diário.
-- Aumentar ou reduzir limite.
-- Suspender temporariamente a utilização.
-- Consultar o limite atual.
-- Consultar a quantidade utilizada.
-- Consultar a quantidade restante.
+### 6. Administração Master
 
-A renovação ocorrerá automaticamente à meia-noite, no horário `America/Sao_Paulo`.
+O painel administrativo deverá seguir a mesma filosofia de objetividade.
 
-O painel não deverá permitir que o usuário comum altere o próprio limite.
+A página inicial deverá apresentar poucos indicadores essenciais, com acesso direto às áreas administrativas.
 
-## 6. Relatório de utilização
+Detalhes e configurações avançadas deverão ficar organizados dentro de suas respectivas áreas, sem sobrecarregar a tela principal.
 
-O Master poderá consultar o consumo individual e geral.
+### 7. Regra permanente de desenvolvimento
 
-### Informações individuais
+Toda nova funcionalidade deverá ser avaliada segundo três perguntas:
 
-- Nome do usuário.
-- Limite diário.
-- Quantidade utilizada.
-- Quantidade restante.
-- Percentual consumido.
-- Pesquisas realizadas.
-- Histórico de utilização.
+1. Essa informação ou ação é realmente necessária?
+2. O sistema pode executar essa tarefa automaticamente?
+3. É possível apresentar o mesmo recurso de forma mais simples?
 
-### Informações gerais
+A funcionalidade deverá ser implementada somente quando agregar valor real à qualidade do garimpo, à segurança, à administração ou à experiência de utilização.
 
-- Consumo total por dia.
-- Consumo por usuário.
-- Quantidade de pesquisas.
-- Evolução da utilização.
-- Fontes mais utilizadas.
-
-Os relatórios deverão permitir análise por período.
-
-## 7. Controle de fontes
-
-O Master poderá administrar as fontes cadastradas no GArimpo.
-
-Cada fonte deverá apresentar:
-
-- Nome.
-- Categoria.
-- Ambiente compatível.
-- Forma de acesso.
-- Situação.
-- Condições de utilização.
-- Limites conhecidos.
-- Data da última verificação.
-
-O administrador poderá ativar ou desativar uma fonte.
-
-A desativação não deverá apagar resultados anteriores.
-
-## 8. Indicadores de custos
-
-O painel deverá permitir acompanhar os custos operacionais da plataforma.
-
-Mesmo começando exclusivamente com fontes gratuitas e públicas, a estrutura deverá estar preparada para registrar custos futuros.
-
-Os indicadores poderão incluir:
-
-- Custo por fonte.
-- Custo por pesquisa.
-- Custo por usuário.
-- Custo operacional diário.
-- Custo operacional mensal.
-
-Nesta fase, os indicadores terão finalidade administrativa e de planejamento.
-
-Não haverá cobrança automática, processamento de pagamentos ou contratação de serviços pagos.
-
-## 9. Modo de manutenção
-
-O painel terá um controle global de manutenção.
-
-O Master poderá:
-
-- Ativar a manutenção.
-- Desativar a manutenção.
-- Definir a mensagem apresentada.
-- Consultar quando foi ativada.
-- Registrar o motivo da interrupção.
-
-Quando a manutenção estiver ativa:
-
-- Usuários comuns verão uma tela informativa.
-- Novas pesquisas ficarão bloqueadas.
-- Dados e históricos permanecerão preservados.
-- O Master continuará podendo acessar o painel.
-
-## 10. Auditoria administrativa
-
-As ações importantes deverão ser registradas.
-
-Exemplos:
-
-- Cadastro de usuário.
-- Bloqueio ou reativação de conta.
-- Alteração de limite.
-- Ativação ou desativação de fonte.
-- Ativação ou encerramento de manutenção.
-- Alteração de configurações gerais.
-
-Cada registro deverá identificar:
-
-- Quem realizou a ação.
-- Qual ação foi executada.
-- Descrição.
-- Data e horário.
-
-Os registros de auditoria não poderão ser alterados por usuários comuns.
-
-## 11. Organização visual
-
-O painel deverá utilizar a identidade visual do GArimpo.
-
-A interface seguirá o padrão:
-
-- Fundo escuro.
-- Painéis em tons de azul profundo.
-- Destaques dourados.
-- Tipografia clara.
-- Indicadores objetivos.
-- Navegação simples.
-
-### Menu administrativo previsto
-
-1. Visão geral.
-2. Usuários.
-3. Limites e consumo.
-4. Pesquisas e relatórios.
-5. Fontes de informação.
-6. Custos operacionais.
-7. Manutenção.
-8. Auditoria.
-9. Configurações.
-
-## 12. Segurança
-
-Todas as operações administrativas deverão ser protegidas no servidor.
-
-O sistema deverá verificar a autorização do Master antes de executar qualquer alteração.
-
-O painel não poderá depender exclusivamente de controles visuais.
-
-As políticas de segurança do Supabase deverão impedir que usuários comuns executem operações administrativas diretamente no banco.
-
-## 13. Evolução do painel
-
-O desenvolvimento será gradual.
-
-A primeira versão deverá priorizar:
-
-1. Autenticação e acesso exclusivo.
-2. Cadastro e administração de usuários.
-3. Defini
+**O objetivo é oferecer uma plataforma tecnicamente inteligente, visualmente limpa e operacionalmente simples.**
