@@ -1,200 +1,492 @@
-# GArimpo — Arquitetura da Plataforma
+# GArimpo 1.0 — Arquitetura da Plataforma
 
 ## 1. Identidade
 
-GArimpo é uma plataforma de inteligência de busca, descoberta e identificação.
-
-Seu objetivo é permitir pesquisas assistidas em diferentes fontes de informação, com capacidade de identificar pessoas, profissionais, empresas, organizações, instituições e temas.
-
 **GArimpo — Inteligência de busca, descoberta e identificação.**
 
-## 2. Conceito central
+O GArimpo é uma plataforma independente de inteligência de pesquisa, descoberta e identificação de pessoas e perfis individuais a partir de informações públicas e fontes autorizadas.
 
-Uma plataforma universal, um único núcleo de inteligência e múltiplos ambientes especializados.
+Seu objetivo é transformar solicitações de pesquisa em resultados organizados, contextualizados e verificáveis, permitindo descobrir pessoas, identificar manifestações públicas, analisar correspondências e construir perfis inteligentes com evidências rastreáveis.
 
-O GArimpo não será limitado a um segmento econômico ou institucional.
+O GArimpo deverá oferecer mais do que links de pesquisa: seu núcleo de inteligência deverá evoluir para executar pesquisas, recuperar informações, identificar possíveis correspondências, organizar evidências e apresentar resultados compreensíveis.
 
-Sua arquitetura deverá permitir atender diferentes clientes, organizações e finalidades, preservando a independência dos ambientes e a capacidade de expansão.
+## 2. Escopo comercial do GArimpo 1.0
 
-## 3. Núcleo de inteligência
+A primeira versão comercial será especializada em vendas diretas e relacionamento com consumidores e profissionais desse segmento.
 
-O núcleo central será responsável por:
+Terá dois ambientes:
 
-- Interpretar solicitações de pesquisa.
-- Organizar critérios de busca.
-- Aplicar filtros.
-- Transformar solicitações em consultas estruturadas.
-- Consultar fontes autorizadas.
-- Identificar correspondências.
-- Cruzar informações disponíveis.
-- Identificar possíveis duplicidades.
-- Organizar resultados e evidências.
-- Classificar a relevância das correspondências.
-- Produzir relatórios.
+### 2.1. Consumidores
 
-O núcleo deverá funcionar independentemente dos provedores de informação utilizados.
+Destinado à descoberta de pessoas que manifestam publicamente interesses relacionados a:
 
-## 4. Ambientes especializados
+- Produtos de marcas de vendas diretas.
+- Intenção de compra.
+- Recomendações e avaliações.
+- Relacionamento com consultoras.
+- Interesse em revenda.
+- Relacionamento com determinadas categorias de produtos.
 
-A plataforma poderá oferecer ambientes independentes para diferentes finalidades:
+O ambiente deverá distinguir manifestações públicas de interesse de uma intenção de compra efetivamente confirmada.
 
-- Recrutamento e recursos humanos.
-- Descoberta de pessoas e profissionais.
-- Prospecção empresarial.
-- Pesquisa institucional.
-- Pesquisa temática.
-- Desenvolvimento de comunidades.
-- Novos segmentos configuráveis.
+Não deverá inferir histórico de compras a partir de curtidas, comentários genéricos ou interações isoladas.
 
-Cada ambiente poderá possuir filtros, critérios, relatórios e permissões específicos.
+### 2.2. Profissionais de vendas diretas
 
-Os ambientes deverão utilizar o mesmo núcleo de inteligência, evitando a duplicação de funcionalidades.
+Destinado à descoberta de pessoas que apresentam manifestações públicas relacionadas à atividade comercial de vendas diretas.
 
-A criação de novos ambientes deverá ocorrer preferencialmente por configurações, sem exigir alterações estruturais no motor central.
+Deverá identificar, conforme as evidências disponíveis:
 
-## 5. Arquitetura do motor de busca
+- Profissionais em atividade.
+- Consultoras e revendedoras.
+- Pessoas que divulgam produtos e oportunidades comerciais.
+- Pessoas que demonstram interesse público em começar.
+- Pessoas com manifestações públicas de interesse em renda extra.
+- Lideranças e atividades de organização de equipes, quando demonstradas por fontes verificáveis.
 
-O motor de busca será organizado em seis etapas integradas.
+O sistema deverá distinguir `profissional_em_atividade` de `potencial_profissional`.
 
-### 5.1. Entrada da pesquisa
+A expressão renda extra será tratada como sinal público de interesse, não como prova de desemprego, adesão a MMN ou atividade comercial efetiva.
 
-Recebe a solicitação do usuário a partir do ambiente selecionado.
+## 3. Produtos e projetos independentes
 
-A solicitação poderá conter:
+O GArimpo será desenvolvido como produto independente.
+
+O CRC.SCOUT poderá futuramente utilizar seus serviços por meio de uma integração externa, sem acoplamento técnico obrigatório entre os projetos.
+
+O GArimpo RH será tratado como produto futuro separado, com requisitos, ambientes e critérios próprios.
+
+A arquitetura deverá permitir expansão, mas não deverá incorporar funcionalidades comerciais que ainda não pertencem ao escopo do GArimpo 1.0.
+
+As integrações do TSE e pesquisas relacionadas à transparência política permanecerão privadas e exclusivas ao GArimpo-Master durante o desenvolvimento.
+
+Essas integrações não serão fontes públicas dos ambientes comerciais do GArimpo 1.0.
+
+Um eventual módulo de transparência e fiscalização política será desenvolvido em projeto próprio da CÍVICA.
+
+## 4. Princípios arquiteturais
+
+A plataforma será organizada em torno de um núcleo central de inteligência, independente dos provedores de informação.
+
+Os princípios fundamentais serão:
+
+- Separação entre interface, processamento, conectores e armazenamento.
+- Independência entre ambientes comerciais.
+- Reutilização de funcionalidades comuns.
+- Integração de fontes por conectores independentes.
+- Privacidade e isolamento dos clientes.
+- Rastreabilidade das informações.
+- Validação das evidências.
+- Qualidade acima da quantidade de resultados.
+- Evolução incremental.
+- Ausência de dependência estrutural de um único provedor.
+
+A inclusão de uma nova fonte não deverá exigir a reconstrução do núcleo central.
+
+A inclusão de um novo ambiente deverá reutilizar as funcionalidades compartilhadas, respeitando seus próprios filtros e regras de classificação.
+
+## 5. Núcleo central de inteligência
+
+O núcleo será responsável por coordenar o processo de pesquisa.
+
+Suas responsabilidades serão:
+
+1. Receber a solicitação do usuário.
+2. Identificar o ambiente selecionado.
+3. Organizar a intenção de pesquisa.
+4. Interpretar filtros e critérios.
+5. Construir consultas adequadas às fontes disponíveis.
+6. Coordenar a execução dos conectores.
+7. Receber os resultados.
+8. Padronizar as informações.
+9. Identificar possíveis perfis individuais.
+10. Organizar fontes e evidências.
+11. Avaliar correspondências.
+12. Identificar possíveis duplicidades.
+13. Construir históricos cronológicos.
+14. Alimentar o Perfil Inteligente.
+15. Apresentar os resultados e relatórios.
+
+O núcleo não deverá depender diretamente da implementação específica de cada fonte.
+
+Os conectores serão responsáveis pela comunicação externa, enquanto o núcleo será responsável pela coordenação, organização e interpretação dos resultados.
+
+## 6. Fluxo de execução de uma pesquisa
+
+O processo completo será dividido em etapas.
+
+### 6.1. Entrada da pesquisa
+
+O usuário seleciona o ambiente e informa:
 
 - Descrição livre.
-- Filtros específicos.
 - Localização.
+- Marcas.
+- Categorias.
 - Palavras-chave.
-- Critérios complementares.
+- Critérios específicos do ambiente.
+- Recência desejada.
+- Outros filtros disponíveis.
 
-### 5.2. Interpretação e organização
+A interface deverá permitir a combinação de descrição livre e filtros estruturados.
 
-O núcleo interpreta a solicitação e transforma os dados recebidos em critérios estruturados.
+### 6.2. Interpretação e organização
+
+O sistema deverá transformar a solicitação em critérios organizados.
 
 Deverá identificar:
 
-- Objetivo da pesquisa.
-- Termos principais.
+- Objetivo principal.
+- Termos relevantes.
 - Critérios obrigatórios.
 - Critérios complementares.
-- Recortes geográficos e temporais.
-- Tipos de fontes adequados.
+- Recorte geográfico.
+- Recorte temporal.
+- Tipos de manifestações procuradas.
+- Fontes compatíveis.
 
-### 5.3. Conectores de fontes
+A interpretação não poderá alterar a intenção original do usuário sem preservar os critérios informados.
 
-Os conectores serão responsáveis pela comunicação entre o núcleo de inteligência e as fontes externas.
+### 6.3. Preparação das consultas
 
-Cada conector deverá possuir uma integração independente.
+O sistema deverá gerar consultas específicas para cada fonte.
 
-Essa estrutura permitirá:
+As consultas deverão considerar as características técnicas e os recursos efetivamente disponibilizados por cada provedor.
 
-- Adicionar novas fontes.
-- Substituir provedores.
-- Desativar integrações.
-- Configurar fontes por ambiente.
-- Controlar permissões e limites de utilização.
+A preparação de uma pesquisa não deverá ser confundida com sua execução.
 
-A indisponibilidade de uma fonte não deverá comprometer necessariamente as demais integrações.
+O status `preparada` indicará que os critérios foram organizados, mas não que os resultados já foram coletados.
 
-### 5.4. Tratamento dos resultados
+### 6.4. Execução das pesquisas
 
-As informações recebidas deverão passar por um processo de organização e validação.
+O executor será responsável por acionar os conectores habilitados.
 
-Esse processo poderá incluir:
+Cada fonte deverá ser consultada de maneira independente, respeitando:
 
-- Padronização dos dados.
-- Identificação de registros semelhantes.
+- Permissões.
+- Limites de utilização.
+- Disponibilidade.
+- Condições técnicas.
+- Custos.
+- Políticas de acesso.
+
+O executor deverá permitir resultados parciais quando uma ou mais fontes estiverem indisponíveis.
+
+A falha de uma integração não deverá comprometer os resultados obtidos por outras fontes.
+
+### 6.5. Tratamento dos resultados
+
+Os resultados recebidos deverão ser organizados em um formato padronizado.
+
+O tratamento poderá incluir:
+
+- Normalização de campos.
+- Identificação de autores.
+- Recuperação de perfis individuais.
+- Identificação de publicações relacionadas.
+- Associação de fontes.
+- Organização de evidências.
+- Verificação de datas.
+- Identificação de informações ausentes.
 - Identificação de possíveis duplicidades.
-- Organização por fonte.
-- Verificação de datas e referências.
-- Identificação de informações incompletas.
 
-Informações provenientes de fontes diferentes deverão manter suas respectivas origens.
+A origem de cada informação deverá ser preservada.
 
-### 5.5. Análise de relevância
+### 6.6. Análise de correspondência
 
-Os resultados deverão ser classificados de acordo com sua correspondência aos critérios da pesquisa.
+O sistema deverá avaliar a relação entre os resultados encontrados e os critérios da pesquisa.
 
-A classificação poderá considerar:
+A classificação utilizará os seguintes níveis:
 
-- Correspondência com os termos pesquisados.
-- Atendimento aos filtros.
-- Compatibilidade geográfica.
-- Atualidade da informação.
-- Qualidade e confiabilidade da fonte.
-- Consistência entre informações disponíveis.
+- `confirmada`
+- `provavel`
+- `possivel`
+- `nao_verificada`
 
-A classificação deverá ser explicável e não poderá apresentar uma correspondência como fato confirmado quando houver apenas indícios.
+A classificação deverá ser acompanhada de justificativa e evidências.
 
-### 5.6. Apresentação dos resultados
+Um perfil acessível não significa identidade confirmada.
 
-O usuário deverá receber resultados organizados e compreensíveis.
+Uma publicação relacionada a uma marca não comprova, isoladamente, atividade comercial.
 
-Cada resultado deverá apresentar, quando disponíveis:
+A classificação deverá ser explicável e proporcional à qualidade das informações disponíveis.
 
-- Identificação do registro.
-- Descrição das informações encontradas.
-- Fonte de origem.
-- Link para consulta original.
-- Data de referência ou publicação.
-- Critérios atendidos.
+### 6.7. Apresentação
+
+O usuário receberá resultados organizados, com identificação dos perfis e acesso às respectivas evidências.
+
+A apresentação deverá destacar:
+
+- Nome ou identificação pública.
+- Link direto do perfil individual.
+- Plataforma.
+- Descrição.
+- Classificação.
 - Grau de correspondência.
-- Observações sobre limitações ou divergências.
+- Fontes consultadas.
+- Publicações relacionadas.
+- Datas disponíveis.
+- Histórico recente.
+- Limitações e divergências.
 
-O GArimpo deverá permitir a produção de relatórios organizados a partir dos resultados encontrados.
+O sistema deverá distinguir informações encontradas, não encontradas e não verificadas.
 
-## 6. Fontes de informação
+## 7. Arquitetura dos conectores
 
-O GArimpo poderá integrar:
+Os conectores serão módulos independentes responsáveis por consultar fontes externas.
 
-- APIs públicas e autorizadas.
-- Bases de dados públicas.
-- Diretórios institucionais.
-- Fontes disponibilizadas por parceiros.
-- Serviços especializados de pesquisa.
-- Outras fontes cuja utilização seja permitida.
+Cada conector deverá possuir:
 
-A seleção das fontes deverá considerar:
+- Identificação da fonte.
+- Configuração própria.
+- Parâmetros de consulta.
+- Tratamento de respostas.
+- Padronização de dados.
+- Controle de erros.
+- Registro de execução.
+- Respeito aos limites de utilização.
 
-- Disponibilidade de acesso.
-- Permissões de utilização.
-- Qualidade das informações.
-- Atualização dos dados.
-- Limites técnicos e contratuais.
-- Custos de consulta.
-- Compatibilidade com a LGPD.
+O núcleo de inteligência não deverá depender de detalhes específicos de APIs externas.
 
-A plataforma deverá identificar a origem das informações e preservar referências que permitam verificar os resultados.
+### 7.1. Bluesky
 
-Não deverão ser utilizados mecanismos de acesso que violem controles técnicos, permissões, termos de uso ou restrições legais das fontes.
+O Bluesky já possui uma integração funcional para pesquisa de publicações públicas.
 
-## 7. Privacidade e segurança
+O conector `lib/conectores/bluesky.ts` utiliza a API pública de pesquisa de publicações.
 
-Privacidade e segurança são fundamentos do produto.
+A rota `app/api/fontes/bluesky/route.ts` permite receber uma consulta e retornar resultados estruturados.
 
-Princípios obrigatórios:
+Essa integração permite recuperar publicações e identificar seus autores, incluindo referências aos perfis individuais.
 
-- Isolamento dos dados de cada cliente.
-- Controle de acesso por usuário e função.
-- Proteção das pesquisas e dos históricos.
-- Registro de operações relevantes.
-- Proteção dos dados armazenados e transmitidos.
-- Respeito à LGPD.
-- Utilização de fontes conforme suas permissões.
-- Possibilidade de exclusão e gestão dos dados.
-- Controle de acesso às integrações.
-- Proteção das credenciais e chaves de API.
+Seu uso deverá considerar as limitações da fonte:
 
-Nenhum cliente poderá acessar automaticamente pesquisas ou informações privadas de outro cliente.
+- A descoberta ocorre a partir de publicações.
+- A presença de um autor não comprova sua identidade civil.
+- A publicação não comprova necessariamente atividade comercial atual.
+- A disponibilidade de dados depende das informações fornecidas pela plataforma.
 
-As consultas às fontes externas deverão ocorrer preferencialmente no ambiente seguro do servidor, sem exposição de credenciais no navegador.
+A integração deverá evoluir para alimentar o formato padronizado de resultados do GArimpo.
 
-A arquitetura deverá prever mecanismos de auditoria, rastreabilidade e controle de utilização.
+### 7.2. Google
 
-## 8. Arquitetura tecnológica
+O Google será utilizado como mecanismo de descoberta por consultas externas.
 
-A aplicação será desenvolvida inicialmente com:
+O módulo `lib/conectores/consultas-web.ts` já prepara consultas especializadas conforme o ambiente e os critérios informados.
+
+A geração de links de pesquisa não representa coleta automática.
+
+A evolução dessa integração poderá utilizar provedores de pesquisa com APIs autorizadas, permitindo recuperar resultados estruturados e alimentar o executor.
+
+O provedor deverá ser escolhido considerando custo, qualidade, permissões e capacidade de integração.
+
+### 7.3. Outras fontes
+
+Novas fontes poderão ser incorporadas mediante conectores independentes.
+
+A inclusão dependerá de avaliação técnica, disponibilidade, qualidade, permissões e viabilidade econômica.
+
+A existência de um conector não significa que todas as funcionalidades da fonte estejam implementadas ou disponíveis.
+
+### 7.4. Catálogo de fontes
+
+O catálogo de fontes deverá informar:
+
+- Identificador.
+- Nome.
+- Tipo.
+- Ambientes compatíveis.
+- Situação da integração.
+- Disponibilidade.
+- Requisitos de acesso.
+
+Deverá distinguir fontes catalogadas, fontes em validação e fontes efetivamente integradas.
+
+Uma fonte listada não deverá ser apresentada como executável quando ainda não possuir integração funcional.
+
+## 8. Identificação de perfis individuais
+
+O principal valor comercial do GArimpo será a identificação de perfis individuais reais e verificáveis.
+
+Os resultados deverão priorizar:
+
+- Pessoas identificáveis em fontes públicas.
+- URLs diretas dos perfis.
+- Publicações relacionadas à pesquisa.
+- Evidências que sustentem a correspondência.
+- Datas de publicação e consulta.
+- Informações profissionais disponibilizadas publicamente, quando existentes.
+
+O sistema não deverá substituir perfis individuais por páginas genéricas, diretórios ou resultados sem identificação.
+
+Os contatos profissionais serão complementares e opcionais.
+
+WhatsApp, telefone e e-mail somente deverão ser apresentados quando efetivamente encontrados em fontes apropriadas e autorizadas.
+
+A ausência de um contato não deverá invalidar um perfil relevante.
+
+O sistema deverá diferenciar:
+
+- Link encontrado.
+- Perfil acessível.
+- Identidade confirmada.
+- Correspondência provável.
+- Correspondência possível.
+- Informação insuficiente.
+
+Não serão inventados nomes, URLs, contatos ou informações para completar resultados.
+
+## 9. Tratamento, deduplicação e qualidade
+
+O GArimpo deverá evitar resultados repetidos e associações indevidas.
+
+A deduplicação deverá considerar múltiplos elementos, como:
+
+- Identificador público da plataforma.
+- URL do perfil.
+- Nome público.
+- Publicações relacionadas.
+- Outros elementos verificáveis.
+
+Nomes semelhantes não serão suficientes para unir registros.
+
+Quando não houver elementos suficientes para confirmar que dois registros pertencem à mesma pessoa, eles deverão permanecer separados ou identificados como correspondências possíveis.
+
+A qualidade dos resultados deverá prevalecer sobre o volume.
+
+O sistema não deverá ampliar critérios artificialmente para atingir uma quantidade predeterminada de resultados.
+
+## 10. Perfil Inteligente
+
+O Perfil Inteligente será uma funcionalidade central e compartilhada entre os ambientes.
+
+Sua finalidade será transformar os resultados encontrados em informações organizadas, contextualizadas e compreensíveis.
+
+Cada perfil poderá conter:
+
+### 10.1. Identificação
+
+- Nome ou identificação pública.
+- Categoria.
+- Localização pública, quando disponível.
+- Plataforma.
+- URL direta.
+- Referências relacionadas.
+
+### 10.2. Resumo inteligente
+
+Síntese das informações encontradas, distinguindo fatos observados, declarações publicadas e interpretações.
+
+### 10.3. Histórico público
+
+Organização cronológica de publicações e acontecimentos relacionados, com datas e fontes.
+
+O sistema deverá distinguir atividade recente de registros antigos.
+
+A ausência de evidências recentes deverá ser apresentada explicitamente.
+
+### 10.4. Atuação e características
+
+Informações relacionadas ao ambiente selecionado.
+
+No ambiente Consumidores, poderão ser organizadas manifestações públicas relacionadas a produtos, interesses e recomendações.
+
+No ambiente Profissionais, poderão ser organizadas evidências de atuação comercial, divulgação de produtos, revenda e interesse público em iniciar atividade.
+
+### 10.5. Conexões públicas
+
+Organização de relações demonstradas por informações públicas.
+
+O sistema não deverá presumir vínculos pessoais, profissionais ou comerciais sem evidências.
+
+### 10.6. Fontes e evidências
+
+Cada informação relevante deverá preservar:
+
+- Nome da fonte.
+- URL.
+- Data de publicação ou referência.
+- Data de consulta.
+- Trecho ou descrição da evidência.
+
+### 10.7. Análise de correspondência
+
+O perfil deverá apresentar:
+
+- Critérios atendidos.
+- Evidências relacionadas.
+- Correspondências.
+- Divergências.
+- Informações ausentes.
+- Pontos que necessitam de confirmação.
+
+### 10.8. Participação da inteligência artificial
+
+A IA poderá:
+
+- Organizar informações.
+- Resumir publicações.
+- Identificar recorrências.
+- Construir cronologias.
+- Relacionar evidências.
+- Explicar correspondências.
+- Elaborar relatórios.
+
+A IA não poderá inventar dados, completar informações por suposição ou apresentar interpretações como fatos confirmados.
+
+## 11. Fontes, evidências e rastreabilidade
+
+Toda informação factual apresentada deverá preservar sua origem.
+
+A estrutura de resultados deverá permitir relacionar:
+
+- Resultado individual.
+- Fonte.
+- Evidência.
+- Evento histórico.
+- Perfil Inteligente.
+- Pesquisa que originou a descoberta.
+
+As evidências deverão ser identificáveis e verificáveis.
+
+A data de consulta deverá ser preservada mesmo quando a data original de publicação não estiver disponível.
+
+A ausência de data de publicação não deverá ser substituída pela data de consulta.
+
+O sistema deverá distinguir claramente a data do acontecimento, a data da publicação e a data em que a informação foi consultada, quando esses elementos estiverem disponíveis.
+
+## 12. Execução e estados das pesquisas
+
+O sistema deverá acompanhar a execução por estados definidos:
+
+- `pendente`
+- `executando`
+- `concluida`
+- `parcial`
+- `sem_resultados`
+- `erro`
+
+A preparação da pesquisa será uma etapa distinta da execução.
+
+O executor deverá registrar:
+
+- Identificador da pesquisa.
+- Usuário responsável.
+- Ambiente.
+- Solicitação original.
+- Critérios aplicados.
+- Fontes consultadas.
+- Início e conclusão.
+- Quantidade de resultados.
+- Situação final.
+- Mensagens de execução.
+
+Resultados parciais deverão preservar as fontes que responderam e aquelas que apresentaram falhas.
+
+A ausência de resultados não deverá ser confundida com indisponibilidade de uma fonte.
+
+## 13. Arquitetura tecnológica
+
+A plataforma utilizará inicialmente:
 
 - Next.js.
 - React.
@@ -202,71 +494,199 @@ A aplicação será desenvolvida inicialmente com:
 - Tailwind CSS.
 - GitHub para versionamento.
 - Vercel para publicação.
+- Supabase para autenticação, banco de dados e políticas de acesso.
 
-Em etapa posterior, será avaliada e implementada a integração com Supabase para:
+As integrações externas serão executadas preferencialmente no servidor.
 
-- Banco de dados.
-- Autenticação.
-- Controle de acesso.
-- Separação dos dados por cliente.
-- Armazenamento de pesquisas.
-- Histórico de consultas.
-- Políticas de segurança.
-- Armazenamento de informações e documentos, quando necessário.
+A arquitetura deverá manter separação entre:
 
-As integrações externas deverão ser organizadas de maneira independente da interface.
+1. Interface.
+2. Organização das pesquisas.
+3. Executor central.
+4. Conectores de fontes.
+5. Tratamento e validação.
+6. Perfil Inteligente.
+7. Persistência e histórico.
+8. Administração e segurança.
 
-A aplicação deverá preservar a separação entre apresentação, processamento das pesquisas, conectores e armazenamento.
+O Supabase será parte da arquitetura de produção, não apenas uma possibilidade futura.
 
-## 9. Modelo de expansão
+A estrutura deverá utilizar autenticação individual, relacionamentos por identificador de usuário e políticas de Row Level Security.
 
-Novos ambientes deverão ser incorporados sem exigir a reconstrução do núcleo central.
+Credenciais privilegiadas deverão permanecer exclusivamente no servidor.
 
-A expansão ocorrerá por configurações, filtros, permissões e integrações específicas.
+## 14. Arquitetura multiusuário
 
-A inclusão de novos provedores de informação deverá ocorrer por conectores independentes.
+O GArimpo 1.0 será uma plataforma multiusuário.
 
-A plataforma deverá permitir evolução gradual, tanto em capacidade de processamento quanto em quantidade de clientes e ambientes.
+Cada usuário deverá possuir dados isolados.
 
-## 10. Histórico e rastreabilidade
+A arquitetura deverá garantir:
 
-A arquitetura deverá permitir registrar as pesquisas realizadas, respeitando as permissões de cada cliente.
+- Pesquisas vinculadas ao proprietário.
+- Resultados vinculados às respectivas pesquisas.
+- Histórico privado.
+- Controle de acesso por usuário e papel.
+- Limites diários individuais.
+- Auditoria de operações relevantes.
+- Proteção contra acesso cruzado.
 
-Quando habilitado, o histórico poderá armazenar:
+A autorização deverá ser verificada no servidor e reforçada pelas políticas do banco de dados.
+
+O GArimpo-Master terá administração centralizada, sem comprometer o isolamento dos dados dos clientes.
+
+As regras detalhadas de autenticação e segurança estão especificadas em `docs/AUTENTICACAO_E_SEGURANCA.md`.
+
+## 15. Limites de utilização e controle operacional
+
+Cada usuário terá um limite diário individual definido pelo Master.
+
+A renovação ocorrerá automaticamente à meia-noite, considerando `America/Sao_Paulo`.
+
+O consumo deverá ser contabilizado no servidor, de forma consistente e protegida contra solicitações simultâneas.
+
+O Master poderá consultar e alterar limites.
+
+O usuário comum poderá acompanhar seu próprio consumo e sua quantidade restante.
+
+O controle de utilização deverá fazer parte da execução das pesquisas, não apenas da interface.
+
+## 16. GArimpo-Master
+
+O GArimpo-Master será o ambiente administrativo central da plataforma.
+
+Suas funções incluirão:
+
+- Administração de usuários.
+- Controle de permissões.
+- Definição de limites.
+- Consulta de utilização.
+- Auditoria.
+- Controle de manutenção.
+- Administração das configurações gerais.
+- Monitoramento das integrações.
+- Acompanhamento de falhas.
+
+O acesso será exclusivo ao papel `master`, validado no servidor.
+
+As integrações administrativas e privadas deverão permanecer separadas dos ambientes comerciais.
+
+## 17. Privacidade, LGPD e uso das fontes
+
+O GArimpo deverá observar a legislação aplicável e as condições de utilização das fontes.
+
+Informações públicas não deverão ser consideradas automaticamente livres para qualquer forma de coleta, armazenamento ou reutilização.
+
+A utilização deverá respeitar finalidade, contexto, permissões, termos de uso e princípios da LGPD.
+
+O sistema não deverá produzir dossiês sobre a vida privada das pessoas nem inferir atributos sensíveis.
+
+A apresentação dos resultados deverá ser proporcional à finalidade da pesquisa e sustentada por evidências.
+
+A segurança e a privacidade deverão ser consideradas em todas as etapas da arquitetura.
+
+## 18. Histórico e relatórios
+
+O sistema deverá permitir armazenar e recuperar pesquisas conforme as permissões e políticas de retenção.
+
+O histórico poderá conter:
 
 - Solicitação original.
-- Ambiente utilizado.
+- Ambiente.
 - Critérios aplicados.
 - Fontes consultadas.
-- Data e horário da pesquisa.
-- Resultados apresentados.
+- Datas.
+- Resultados.
+- Evidências.
+- Situação da execução.
 - Identificação do usuário responsável.
-- Situação da consulta.
 
-O histórico deverá permitir auditoria e recuperação de pesquisas, conforme as políticas de retenção e exclusão definidas.
+Os relatórios deverão apresentar informações organizadas e verificáveis.
 
-## 11. Diretriz de desenvolvimento
+A exportação de resultados deverá preservar referências e fontes, evitando que informações percam sua origem ao serem compartilhadas.
 
-O desenvolvimento deverá ser incremental.
+## 19. Expansão futura
 
-Cada etapa deverá preservar a arquitetura universal, a segurança, a privacidade e a possibilidade de expansão comercial do produto.
+A arquitetura deverá permitir a inclusão de novos ambientes e fontes sem comprometer o núcleo central.
 
-A implementação do motor deverá ocorrer por fases:
+Novos produtos ou segmentos poderão reutilizar componentes técnicos quando isso fizer sentido, mas deverão manter seus próprios requisitos, permissões e regras de negócio.
 
-1. Estruturação da arquitetura de pesquisa.
-2. Definição e seleção das primeiras fontes.
-3. Implementação dos conectores.
-4. Integração com o núcleo de inteligência.
-5. Tratamento e classificação dos resultados.
-6. Apresentação das evidências e relatórios.
-7. Histórico, autenticação e isolamento dos clientes.
-8. Ampliação gradual das fontes e ambientes.
+A expansão não deverá comprometer:
 
-Nenhuma integração deverá comprometer a independência dos ambientes ou a segurança dos dados.
+- Isolamento dos usuários.
+- Privacidade.
+- Integridade das informações.
+- Independência dos ambientes.
+- Segurança das integrações.
 
-O GArimpo será concebido como uma plataforma independente, preparada para atender diferentes organizações e segmentos.
+O GArimpo RH, a integração com CRC.SCOUT e eventuais módulos para outros segmentos serão avaliados como projetos ou integrações específicas.
 
----
+## 20. Fases de implementação
+
+A evolução do GArimpo 1.0 será incremental.
+
+### Fase 1 — Fundação
+
+- Estrutura dos ambientes comerciais.
+- Organização das pesquisas.
+- Catálogo de fontes.
+- Modelagem padronizada dos resultados.
+- Definição do Perfil Inteligente.
+
+### Fase 2 — Execução das fontes
+
+- Estruturação do executor central.
+- Integração efetiva com o Bluesky.
+- Avaliação e integração de provedores de pesquisa web.
+- Padronização das respostas.
+- Controle de erros e resultados parciais.
+
+### Fase 3 — Inteligência dos resultados
+
+- Identificação de perfis individuais.
+- Associação de evidências.
+- Deduplicação.
+- Classificação de correspondências.
+- Histórico cronológico.
+- Construção do Perfil Inteligente.
+
+### Fase 4 — Persistência e segurança
+
+- Supabase Auth.
+- Perfis de usuários.
+- Banco de dados.
+- Políticas RLS.
+- Isolamento das pesquisas.
+- Limites diários.
+- Auditoria.
+
+### Fase 5 — Administração e operação
+
+- Painel GArimpo-Master.
+- Gestão de usuários.
+- Controle de limites.
+- Monitoramento.
+- Modo de manutenção.
+- Relatórios e histórico.
+
+### Fase 6 — Consolidação comercial
+
+- Testes de segurança.
+- Testes de qualidade.
+- Avaliação dos custos por pesquisa.
+- Ajustes de desempenho.
+- Documentação operacional.
+- Preparação para clientes.
+
+As fases representam uma sequência de implementação planejada, não uma declaração de que todas as funcionalidades já estejam concluídas.
+
+## 21. Diretriz final
+
+O GArimpo 1.0 deverá ser uma plataforma de inteligência de descoberta capaz de transformar manifestações públicas e fontes autorizadas em resultados individuais organizados, contextualizados e verificáveis.
+
+Seu principal valor não será a quantidade de links apresentados, mas a capacidade de identificar perfis relevantes, demonstrar a origem das informações e explicar por que cada resultado corresponde aos critérios pesquisados.
+
+A plataforma deverá evoluir com independência de fontes, segurança multiusuário, rastreabilidade e qualidade.
 
 **GArimpo**
 
