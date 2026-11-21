@@ -3,7 +3,8 @@ export type CategoriaFonte =
   | "dados_publicos"
   | "institucional"
   | "academica"
-  | "rede_social";
+  | "rede_social"
+  | "busca_web";
 
 export type FormaAcesso =
   | "api_publica"
@@ -31,150 +32,109 @@ export type FonteInformacao = {
   observacoes?: string;
 };
 
+const AMBIENTES_COMERCIAIS = [
+  "pessoas",
+  "profissionais",
+];
+
 export const fontes: FonteInformacao[] = [
   {
-    id: "dados-gov",
-    nome: "Dados.gov.br",
-    descricao: "Catálogo de conjuntos de dados públicos do governo brasileiro.",
-    categoria: "dados_publicos",
-    formaAcesso: "api_publica",
+    id: "google",
+    nome: "Google Pesquisa",
+    descricao:
+      "Pesquisa na web para localizar páginas públicas, perfis individuais, publicações e manifestações relacionadas a produtos e vendas diretas.",
+    categoria: "busca_web",
+    formaAcesso: "consulta_web",
     status: "catalogada",
-    url: "https://dados.gov.br/",
-    ambientes: [
-      "pessoas",
-      "profissionais",
-      "empresas",
-      "organizacoes",
-      "temas",
-    ],
+    url: "https://www.google.com/",
+    ambientes: AMBIENTES_COMERCIAIS,
     gratuita: true,
     observacoes:
-      "A API permite pesquisar conjuntos de dados e organizações. Cada conjunto deverá ter suas condições de uso verificadas.",
+      "A pesquisa pode localizar páginas indexadas, mas não garante a existência, a acessibilidade ou a identidade do perfil. A coleta e a validação serão etapas próprias do GArimpo.",
   },
   {
-    id: "ibge",
-    nome: "IBGE",
-    descricao: "Dados estatísticos, territoriais, econômicos e populacionais.",
-    categoria: "dados_publicos",
-    formaAcesso: "api_publica",
-    status: "catalogada",
-    url: "https://servicodados.ibge.gov.br/api/docs/",
-    ambientes: [
-      "empresas",
-      "organizacoes",
-      "temas",
-    ],
-    gratuita: true,
-    observacoes:
-      "Fonte útil para contextualização territorial, econômica e demográfica.",
-  },
-  {
-    id: "tse",
-    nome: "Tribunal Superior Eleitoral",
-    descricao: "Dados públicos eleitorais, candidaturas, partidos e eleições.",
-    categoria: "institucional",
-    formaAcesso: "download",
-    status: "catalogada",
-    url: "https://dadosabertos.tse.jus.br/",
-    ambientes: [
-      "pessoas",
-      "organizacoes",
-      "temas",
-    ],
-    gratuita: true,
-    observacoes:
-      "Utilizar somente informações públicas e observar a finalidade e as regras aplicáveis aos dados pessoais.",
-  },
-  {
-    id: "receita-federal",
-    nome: "Receita Federal",
-    descricao: "Dados cadastrais públicos de empresas e estabelecimentos.",
-    categoria: "dados_publicos",
-    formaAcesso: "download",
-    status: "catalogada",
-    url: "https://www.gov.br/receitafederal/dados",
-    ambientes: [
-      "empresas",
-      "organizacoes",
-    ],
-    gratuita: true,
-    observacoes:
-      "Os dados são disponibilizados em arquivos estruturados. A integração exigirá tratamento e atualização dos arquivos.",
-  },
-  {
-    id: "openalex",
-    nome: "OpenAlex",
-    descricao: "Publicações científicas, autores, instituições e temas de pesquisa.",
-    categoria: "academica",
-    formaAcesso: "api_com_chave",
+    id: "instagram",
+    nome: "Instagram",
+    descricao:
+      "Perfis e publicações públicas que possam apresentar atividade comercial, divulgação de produtos, recomendações ou interesse em vendas diretas.",
+    categoria: "rede_social",
+    formaAcesso: "consulta_web",
     status: "requer_validacao",
-    url: "https://help.openalex.org/api/",
-    ambientes: [
-      "pessoas",
-      "profissionais",
-      "organizacoes",
-      "temas",
-    ],
+    url: "https://www.instagram.com/",
+    ambientes: AMBIENTES_COMERCIAIS,
     gratuita: true,
     observacoes:
-      "A API oferece orçamento gratuito diário, mas exige chave de acesso conforme as regras atuais.",
+      "A pesquisa por páginas indexadas não equivale a uma API de consulta irrestrita. Respeitar as condições de acesso e uso da plataforma.",
+  },
+  {
+    id: "facebook",
+    nome: "Facebook",
+    descricao:
+      "Páginas, perfis, publicações e comunidades públicas relacionadas a consumo, recomendações e atividade comercial.",
+    categoria: "rede_social",
+    formaAcesso: "consulta_web",
+    status: "requer_validacao",
+    url: "https://www.facebook.com/",
+    ambientes: AMBIENTES_COMERCIAIS,
+    gratuita: true,
+    observacoes:
+      "A disponibilidade de conteúdo depende da visibilidade pública, indexação e permissões da plataforma. Não representa acesso irrestrito aos dados.",
+  },
+  {
+    id: "tiktok",
+    nome: "TikTok",
+    descricao:
+      "Perfis e vídeos públicos com demonstrações de produtos, recomendações, divulgação comercial e manifestações de interesse em vendas.",
+    categoria: "rede_social",
+    formaAcesso: "consulta_web",
+    status: "requer_validacao",
+    url: "https://www.tiktok.com/",
+    ambientes: AMBIENTES_COMERCIAIS,
+    gratuita: true,
+    observacoes:
+      "A pesquisa por conteúdo público depende da disponibilidade e indexação. Não presumir acesso a dados privados ou a todos os perfis.",
   },
   {
     id: "youtube",
     nome: "YouTube",
-    descricao: "Vídeos, canais e informações públicas de conteúdo.",
+    descricao:
+      "Canais e vídeos públicos sobre produtos, demonstrações, recomendações e atividade comercial.",
     categoria: "rede_social",
     formaAcesso: "api_com_chave",
     status: "requer_validacao",
     url: "https://developers.google.com/youtube/data",
-    ambientes: [
-      "pessoas",
-      "profissionais",
-      "empresas",
-      "organizacoes",
-      "temas",
-    ],
+    ambientes: AMBIENTES_COMERCIAIS,
     gratuita: true,
     observacoes:
-      "A API possui cotas gratuitas limitadas e exige configuração de projeto no Google.",
+      "A API exige configuração de projeto e possui cotas. A disponibilidade de dados de canais e vídeos depende dos recursos autorizados.",
   },
   {
     id: "bluesky",
     nome: "Bluesky",
-    descricao: "Publicações e perfis disponibilizados pela rede social.",
+    descricao:
+      "Perfis e publicações públicas que possam apresentar interesses de consumo ou atividade profissional.",
     categoria: "rede_social",
     formaAcesso: "api_publica",
     status: "requer_validacao",
     url: "https://docs.bsky.app/",
-    ambientes: [
-      "pessoas",
-      "profissionais",
-      "empresas",
-      "organizacoes",
-      "temas",
-    ],
+    ambientes: AMBIENTES_COMERCIAIS,
     gratuita: true,
     observacoes:
-      "Leituras públicas estão disponíveis sem autenticação em endpoints compatíveis. Respeitar limites e regras da plataforma.",
+      "Acesso público disponível em endpoints compatíveis. Validar limites, disponibilidade e condições de uso antes da integração.",
   },
   {
     id: "mastodon",
     nome: "Mastodon",
-    descricao: "Publicações e perfis públicos de instâncias da rede.",
+    descricao:
+      "Perfis e publicações públicas de instâncias que possam conter informações relacionadas aos ambientes comerciais.",
     categoria: "rede_social",
     formaAcesso: "acesso_condicional",
     status: "requer_validacao",
     url: "https://docs.joinmastodon.org/",
-    ambientes: [
-      "pessoas",
-      "profissionais",
-      "empresas",
-      "organizacoes",
-      "temas",
-    ],
+    ambientes: AMBIENTES_COMERCIAIS,
     gratuita: true,
     observacoes:
-      "A disponibilidade depende das configurações e permissões de cada instância.",
+      "A disponibilidade depende das configurações, políticas e permissões de cada instância.",
   },
 ];
 
@@ -199,4 +159,3 @@ export function listarFontesDisponiveis(): FonteInformacao[] {
     (fonte) => fonte.status === "disponivel"
   );
 }
-
