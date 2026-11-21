@@ -21,77 +21,92 @@ export const ambientes: Ambiente[] = [
     id: "pessoas",
     nome: "Consumidores",
     descricao:
-      "Descoberta de perfis individuais com manifestações públicas de interesse em produtos de venda direta, recomendações, revenda ou relacionamento com consultoras.",
+      "Descoberta de publicações e conversas públicas relacionadas a produtos, experiências, necessidades, dúvidas e interesses nos segmentos de suplementos, nutracêuticos, ozonioterapia, cuidados pessoais e beleza.",
     finalidade:
-      "Identificação de potenciais consumidores e pessoas interessadas em produtos de venda direta.",
+      "Encontrar os melhores veios de conversas e oportunidades de relacionamento com consumidores, priorizando manifestações espontâneas de interesse, pedidos de indicação, experiências e procura por soluções.",
     categorias: [
-      "Interesse em comprar",
+      "Suplementos e nutrição",
+      "Nutracêuticos",
+      "Ozonioterapia e bem-estar",
+      "Cuidados pessoais e beleza",
+      "Emagrecimento e hábitos saudáveis",
+      "Vitaminas e suplementação",
+      "Articulações e mobilidade",
+      "Sono e qualidade de vida",
+      "Saúde e bem-estar emocional",
       "Recomendações e avaliações",
-      "Interesse em revenda",
-      "Relacionamento com consultoras",
-      "Produtos e marcas",
+      "Interesse em comprar",
+      "Experiências com produtos",
     ],
     filtros: [
       {
         id: "localizacao",
         nome: "Localização",
         descricao:
-          "Informe a cidade, estado ou região onde deseja encontrar pessoas.",
+          "Informe a cidade, estado ou região para contextualizar a busca por publicações e conversas públicas.",
         placeholder: "Ex.: Cabo Frio, RJ",
       },
       {
         id: "marcas",
         nome: "Marcas de interesse",
         descricao:
-          "Selecione ou informe as marcas relacionadas à pesquisa.",
+          "Informe marcas relacionadas aos produtos e segmentos pesquisados.",
         placeholder:
-          "Ex.: Natura, O Boticário, Avon, Jequiti",
+          "Ex.: marcas de suplementos, nutracêuticos e cosméticos",
       },
       {
         id: "categoriasProdutos",
         nome: "Categorias de produtos",
         descricao:
-          "Indique os tipos de produtos mencionados publicamente pelas pessoas.",
+          "Indique os segmentos de produtos e serviços que deseja explorar.",
         placeholder:
-          "Ex.: perfumes, maquiagem, cosméticos, cuidados pessoais",
+          "Ex.: whey protein, creatina, vitaminas, nutracêuticos, ozonioterapia, skincare, cosméticos",
+      },
+      {
+        id: "temasBemEstar",
+        nome: "Temas de saúde e bem-estar",
+        descricao:
+          "Explore conversas públicas sobre necessidades, dúvidas e temas de bem-estar. O resultado deve representar o assunto da publicação, não um diagnóstico ou classificação de seu autor.",
+        placeholder:
+          "Ex.: articulações, mobilidade, emagrecimento, vitaminas, sono, diabetes, pressão arterial, saúde emocional",
       },
       {
         id: "interesseCompra",
-        nome: "Interesse em comprar",
+        nome: "Procura por produtos e soluções",
         descricao:
-          "Identifique manifestações públicas de procura, intenção de compra ou interesse em adquirir produtos.",
+          "Encontre publicações com pedidos de indicação, comparações, dúvidas sobre produtos e manifestações explícitas de interesse.",
         placeholder:
-          "Ex.: procurando perfume, indicação de hidratante, onde comprar",
+          "Ex.: procurando suplemento, indicação de vitaminas, recomendação de hidratante",
       },
       {
         id: "recomendacoesAvaliacoes",
-        nome: "Recomendações e avaliações",
+        nome: "Recomendações e experiências",
         descricao:
-          "Procure publicações públicas com recomendações, avaliações ou opiniões sobre produtos.",
+          "Procure conversas públicas com avaliações, relatos de experiências e pedidos de recomendações.",
         placeholder:
-          "Ex.: recomendações de perfumes, avaliação de maquiagem",
+          "Ex.: alguém já usou, qual produto recomenda, experiência com creatina",
       },
       {
-        id: "relacionamentoConsultoras",
-        nome: "Relacionamento com consultoras",
+        id: "cuidadosPessoais",
+        nome: "Cuidados pessoais e beleza",
         descricao:
-          "Identifique manifestações públicas relacionadas a consultoras, atendimento ou indicação de produtos.",
+          "Explore conversas sobre autocuidado, cosméticos, estética, pele, cabelo e produtos de beleza.",
         placeholder:
-          "Ex.: indicação de consultora Natura, contato com revendedora",
+          "Ex.: skincare, cuidados com a pele, hidratação capilar, maquiagem",
       },
       {
-        id: "interesseRevenda",
-        nome: "Interesse em revenda ou indicação",
+        id: "ozonioterapia",
+        nome: "Ozonioterapia",
         descricao:
-          "Procure manifestações públicas de interesse em revender produtos ou recomendá-los a outras pessoas.",
+          "Localize conversas públicas sobre o tema, procura por informações, experiências e interesse em serviços, sem presumir eficácia ou indicação terapêutica.",
         placeholder:
-          "Ex.: interesse em revender cosméticos, indicação de produtos",
+          "Ex.: ozonioterapia, informações, experiências e serviços",
       },
       {
         id: "recencia",
-        nome: "Atualidade das manifestações",
+        nome: "Atualidade das publicações",
         descricao:
-          "Defina o período desejado para encontrar manifestações públicas recentes.",
+          "Defina o período desejado para encontrar publicações e conversas relevantes.",
         placeholder:
           "Ex.: últimos 30 dias, últimos 3 meses, últimos 12 meses",
       },
@@ -102,13 +117,18 @@ export const ambientes: Ambiente[] = [
     id: "profissionais",
     nome: "Profissionais de vendas diretas",
     descricao:
-      "Descoberta de perfis individuais de consultoras, revendedoras e profissionais de vendas diretas, além de pessoas que manifestam publicamente interesse em iniciar nessa atividade.",
+      "Descoberta de publicações e conversas de pessoas que trabalham com vendas diretas, revenda e representação, além de pessoas que manifestam interesse em empreender, iniciar uma atividade comercial ou conquistar renda extra.",
     finalidade:
-      "Identificação de profissionais em atividade e potenciais profissionais de vendas diretas.",
+      "Encontrar veios com oportunidades de relacionamento com profissionais em atividade e pessoas interessadas em empreendedorismo, vendas diretas e geração de renda.",
     categorias: [
       "Consultoras e revendedoras",
+      "Profissionais de vendas diretas",
       "Atividade comercial comprovada",
       "Interesse em começar",
+      "Interesse em empreender",
+      "Busca por renda extra",
+      "Negócio próprio",
+      "Revenda e representação",
       "Marcas e empresas",
       "Divulgação de produtos",
       "Liderança e equipes",
@@ -118,14 +138,14 @@ export const ambientes: Ambiente[] = [
         id: "localizacao",
         nome: "Localização",
         descricao:
-          "Informe a cidade, estado ou região onde deseja encontrar profissionais.",
+          "Informe a cidade, estado ou região para contextualizar a busca por publicações e profissionais.",
         placeholder: "Ex.: Cabo Frio, RJ",
       },
       {
         id: "marcas",
         nome: "Marcas ou empresas",
         descricao:
-          "Indique as marcas de venda direta relacionadas à pesquisa.",
+          "Indique marcas e empresas relacionadas às atividades de venda direta.",
         placeholder:
           "Ex.: Natura, O Boticário, Avon, Jequiti",
       },
@@ -133,7 +153,7 @@ export const ambientes: Ambiente[] = [
         id: "tipoAtuacao",
         nome: "Tipo de atuação",
         descricao:
-          "Informe a atividade profissional que deseja localizar.",
+          "Informe as atividades comerciais que deseja encontrar.",
         placeholder:
           "Ex.: consultora, revendedora, representante, vendedora",
       },
@@ -141,15 +161,15 @@ export const ambientes: Ambiente[] = [
         id: "situacaoProfissional",
         nome: "Situação profissional",
         descricao:
-          "Diferencie pessoas com atividade comercial demonstrada de pessoas que apenas manifestam interesse em começar.",
+          "Diferencie evidências públicas de atividade comercial de manifestações de interesse em começar.",
         placeholder:
-          "Ex.: profissional em atividade, potencial profissional",
+          "Ex.: profissional em atividade, interessado em começar",
       },
       {
         id: "experiencia",
         nome: "Experiência em vendas diretas",
         descricao:
-          "Informe experiências ou atividades comerciais mencionadas publicamente.",
+          "Procure relatos públicos de experiência com revenda, representação, consultoria e comercialização de produtos.",
         placeholder:
           "Ex.: revenda de cosméticos, consultoria de beleza, vendas por catálogo",
       },
@@ -157,7 +177,7 @@ export const ambientes: Ambiente[] = [
         id: "atividadeComercial",
         nome: "Atividade comercial pública",
         descricao:
-          "Procure evidências de divulgação de produtos, ofertas, catálogos, demonstrações ou atendimento comercial.",
+          "Procure evidências públicas de divulgação de produtos, ofertas, catálogos, demonstrações e atendimento comercial.",
         placeholder:
           "Ex.: divulgação de catálogo, ofertas, demonstração de produtos",
       },
@@ -165,15 +185,31 @@ export const ambientes: Ambiente[] = [
         id: "interesseIniciar",
         nome: "Interesse em começar",
         descricao:
-          "Procure manifestações públicas de interesse em iniciar uma atividade comercial ou trabalhar com vendas diretas.",
+          "Encontre manifestações públicas de pessoas que desejam iniciar uma atividade comercial ou trabalhar com vendas diretas.",
         placeholder:
-          "Ex.: começar a revender, trabalhar com cosméticos, iniciar negócio próprio",
+          "Ex.: quero começar a revender, trabalhar com vendas, iniciar negócio próprio",
+      },
+      {
+        id: "interesseEmpreender",
+        nome: "Interesse em empreender",
+        descricao:
+          "Explore conversas de pessoas que demonstram interesse em empreender, abrir um negócio ou desenvolver uma atividade própria.",
+        placeholder:
+          "Ex.: quero empreender, começar meu negócio, trabalhar por conta própria",
+      },
+      {
+        id: "rendaExtra",
+        nome: "Busca por renda extra",
+        descricao:
+          "Encontre publicações em que pessoas manifestam interesse em complementar a renda ou buscar novas oportunidades de trabalho.",
+        placeholder:
+          "Ex.: procurando renda extra, trabalho complementar, ganhar dinheiro nas horas vagas",
       },
       {
         id: "liderancaEquipes",
         nome: "Liderança e formação de equipes",
         descricao:
-          "Identifique evidências públicas de liderança, orientação ou formação de equipes comerciais.",
+          "Identifique publicações sobre liderança, treinamento, orientação e desenvolvimento de equipes comerciais.",
         placeholder:
           "Ex.: líder de equipe, treinamento de consultoras, desenvolvimento de revendedoras",
       },
