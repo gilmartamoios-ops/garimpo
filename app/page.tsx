@@ -3,54 +3,123 @@
 
 import { useState } from "react";
 import { ambientes } from "@/lib/ambientes";
-import { prepararPesquisa } from "@/lib/pesquisa";
-import type { ConsultaWebGerada } from "@/lib/conectores/consultas-web";
 
-type PesquisaPreparada = {
-  id: string;
-  ambienteNome: string;
-  consultasWeb: ConsultaWebGerada[];
+type Publicacao = {
+  uri: string;
+  texto: string;
+  publicadaEm: string;
+  autor: {
+    nome: string;
+    identificador: string;
+    perfil: string;
+    avatar?: string;
+  };
+  endereco: string;
+  metricas: {
+    curtidas: number;
+    compartilhamentos: number;
+    respostas: number;
+  };
 };
 
-export default function Home() {
-  const [pesquisaPreparada, setPesquisaPreparada] =
-    useState<PesquisaPreparada | null>(null);
+type GrupoResultado = {
+  grupo: string;
+  publicacoes: Publicacao[];
+  total: number;
+  consultasExecutadas: string[];
+  falhas: {
+    consulta: string;
+    erro: string;
+  }[];
+};
 
+type ResultadoGarimpo = {
+  pesquisaId: string;
+  nicho: string;
+  ambiente: string;
+  fonte: string;
+  status: string;
+  totalPublicacoes: number;
+  grupos: GrupoResultado[];
+  consultadoEm: string;
+};
+
+const nomesGrupos: Record<string, string> = {
+  consumidores_suplementos: "Consumidores de suplementos",
+  interesse_suplementos: "Interesse em suplementos",
+  publico_conteudos_afins: "Interesse em conteúdos relacionados",
+  empreendedores_venda_direta: "Empreendedores de venda direta",
+};
+
+function formatarData(data: string): string {
+  if (!data) {
+    return "Data não informada";
+  }
+
+  const valor = new Date(data);
+
+  if (Number.isNaN(valor.getTime())) {
+    return "Data não informada";
+  }
+
+  return valor.toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
+export default function Home() {
   const [ambienteSelecionado, setAmbienteSelecionado] =
     useState("");
 
+  const [carregando, setCarregando] = useState(false);
+
+  const [resultado, setResultado] =
+    useState<ResultadoGarimpo | null>(null);
+
   const [erroPesquisa, setErroPesquisa] = useState("");
 
-  function selecionarAmbiente(ambiente: (typeof ambientes)[number]) {
+  async function selecionarAmbiente(
+    ambiente: (typeof ambientes)[number]
+  ) {
+    if (carregando) {
+      return;
+    }
+
     setAmbienteSelecionado(ambiente.nome);
-    setPesquisaPreparada(null);
+    setResultado(null);
     setErroPesquisa("");
+    setCarregando(true);
 
     try {
-      // O sistema constrói a consulta usando as categorias
-      // previamente definidas para cada ambiente.
-      const consultaAutomatica =
-        ambiente.categorias.length > 0
-          ? ambiente.categorias.join(" ")
-          : ambiente.finalidade;
-
-      const pesquisa = prepararPesquisa({
-        ambienteId: ambiente.id,
-        consulta: consultaAutomatica,
-        filtros: {},
+      const resposta = await fetch("/api/pesquisar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ambienteId: ambiente.id,
+        }),
+        cache: "no-store",
       });
 
-      setPesquisaPreparada({
-        id: pesquisa.id,
-        ambienteNome: pesquisa.ambienteNome,
-        consultasWeb: pesquisa.consultasWeb,
-      });
+      const dados = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(
+          dados.erro ?? "Não foi possível executar o garimpo."
+        );
+      }
+
+      setResultado(dados as ResultadoGarimpo);
     } catch (error) {
       setErroPesquisa(
         error instanceof Error
           ? error.message
-          : "Não foi possível preparar a pesquisa."
+          : "Não foi possível executar o garimpo."
       );
+    } finally {
+      setCarregando(false);
     }
   }
 
@@ -97,7 +166,7 @@ export default function Home() {
 
       <section
         id="pesquisa"
-        className="max-w-4xl mx-auto px-5 py-10 md:py-14"
+        className="max-w-5xl mx-auto px-5 py-10 md:py-14"
       >
         <div className="text-center mb-8">
           <h2 className="text-xl md:text-3xl font-semibold">
@@ -105,7 +174,7 @@ export default function Home() {
           </h2>
 
           <p className="text-gray-400 mt-2 text-sm">
-            Escolha o ambiente. O GArimpo organiza a pesquisa.
+            Escolha o ambiente. O GArimpo executa a pesquisa.
           </p>
         </div>
 
@@ -120,9 +189,10 @@ export default function Home() {
                 <button
                   key={ambiente.id}
                   type="button"
+                  disabled={carregando}
                   onClick={() => selecionarAmbiente(ambiente)}
                   aria-pressed={selecionado}
-                  className={`text-left rounded-xl border p-5 md:p-6 transition
+                  className={`text-left rounded-xl border p-5 md:p-6 transition disabled:opacity-60
                     ${
                       selecionado
                         ? "border-amber-400 bg-amber-500/10"
@@ -139,7 +209,9 @@ export default function Home() {
 
                   <div className="mt-5 flex items-center justify-between">
                     <span className="text-xs text-amber-300">
-                      Selecionar ambiente
+                      {carregando && selecionado
+                        ? "Executando garimpo..."
+                        : "Iniciar garimpo"}
                     </span>
 
                     <span className="text-amber-400 text-xl">
@@ -151,6 +223,25 @@ export default function Home() {
             })}
         </div>
 
+        {carregando && (
+          <div
+            role="status"
+            className="mt-8 rounded-xl border border-amber-500/30 bg-[#111c2b] p-6 text-center"
+          >
+            <div className="text-amber-400 font-semibold">
+              GArimpo em execução
+            </div>
+
+            <p className="text-gray-400 text-sm mt-2">
+              Consultando publicações e identificando autores no Bluesky.
+            </p>
+
+            <p className="text-gray-500 text-xs mt-3">
+              Aguarde a conclusão das consultas.
+            </p>
+          </div>
+        )}
+
         {erroPesquisa && (
           <div
             role="alert"
@@ -160,61 +251,192 @@ export default function Home() {
           </div>
         )}
 
-        {pesquisaPreparada && (
+        {resultado && (
           <section
             aria-live="polite"
             className="mt-8 rounded-xl border border-amber-500/30 bg-[#111c2b] p-5 md:p-6"
           >
             <p className="text-amber-400 text-xs font-semibold tracking-wider">
-              PESQUISA ORGANIZADA
+              RESULTADO DO GARIMPO
             </p>
 
-            <h3 className="text-white text-lg font-semibold mt-2">
-              {pesquisaPreparada.ambienteNome}
+            <h3 className="text-white text-xl font-semibold mt-2">
+              {resultado.nicho}
             </h3>
 
-            <p className="text-gray-400 text-sm mt-2 leading-relaxed">
-              O GArimpo preparou consultas direcionadas às fontes
-              públicas. Nesta etapa, os links precisam ser abertos
-              manualmente. A coleta e a validação automática de
-              perfis ainda serão implementadas.
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
+              <div className="rounded-lg bg-[#080d16] p-4">
+                <p className="text-gray-500 text-xs">
+                  Publicações encontradas
+                </p>
+                <p className="text-2xl font-semibold text-amber-400 mt-1">
+                  {resultado.totalPublicacoes}
+                </p>
+              </div>
+
+              <div className="rounded-lg bg-[#080d16] p-4">
+                <p className="text-gray-500 text-xs">
+                  Grupos pesquisados
+                </p>
+                <p className="text-2xl font-semibold text-white mt-1">
+                  {resultado.grupos.length}
+                </p>
+              </div>
+
+              <div className="rounded-lg bg-[#080d16] p-4 col-span-2 sm:col-span-1">
+                <p className="text-gray-500 text-xs">
+                  Fonte consultada
+                </p>
+                <p className="text-lg font-semibold text-white mt-1">
+                  {resultado.fonte}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-gray-400 text-xs mt-4">
+              Consulta realizada em {formatarData(resultado.consultadoEm)}
             </p>
 
-            {pesquisaPreparada.consultasWeb.length === 0 ? (
-              <p className="text-gray-400 text-sm mt-5">
-                Nenhuma consulta externa foi gerada para este ambiente.
-              </p>
-            ) : (
-              <div className="mt-5 space-y-3">
-                {pesquisaPreparada.consultasWeb.map((item) => (
-                  <div
-                    key={item.id}
-                    className="rounded-lg border border-white/10 bg-[#080d16] p-4"
-                  >
-                    <p className="text-white font-semibold text-sm">
-                      {item.fonte}
-                    </p>
-
-                    <p className="text-gray-400 text-xs mt-1">
-                      {item.objetivo}
-                    </p>
-
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex mt-3 rounded-lg border border-amber-500/40 px-4 py-2 text-sm text-amber-400 hover:bg-amber-500 hover:text-black transition"
-                    >
-                      Abrir consulta ↗
-                    </a>
-                  </div>
-                ))}
+            {resultado.totalPublicacoes === 0 && (
+              <div className="mt-6 rounded-lg border border-white/10 bg-[#080d16] p-5">
+                <p className="text-white font-semibold text-sm">
+                  Nenhuma publicação encontrada nesta execução.
+                </p>
+                <p className="text-gray-400 text-sm mt-2">
+                  Isso não significa que não existam pessoas com esse
+                  interesse. Significa apenas que esta fonte não retornou
+                  publicações para as consultas realizadas.
+                </p>
               </div>
             )}
 
-            <p className="text-gray-600 text-xs mt-5 break-all">
-              Identificador: {pesquisaPreparada.id}
-            </p>
+            <div className="mt-7 space-y-7">
+              {resultado.grupos.map((grupo) => (
+                <div key={grupo.grupo}>
+                  <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                    <h4 className="text-white font-semibold text-sm">
+                      {nomesGrupos[grupo.grupo] ?? grupo.grupo}
+                    </h4>
+
+                    <span className="text-amber-400 text-sm font-semibold">
+                      {grupo.total} publicações
+                    </span>
+                  </div>
+
+                  {grupo.publicacoes.length === 0 ? (
+                    <p className="text-gray-500 text-sm mt-3">
+                      Nenhuma publicação encontrada neste grupo.
+                    </p>
+                  ) : (
+                    <div className="space-y-3 mt-4">
+                      {grupo.publicacoes.map((publicacao) => (
+                        <article
+                          key={publicacao.uri}
+                          className="rounded-lg border border-white/10 bg-[#080d16] p-4"
+                        >
+                          <div className="flex items-start gap-3">
+                            {publicacao.autor.avatar ? (
+                              <img
+                                src={publicacao.autor.avatar}
+                                alt=""
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-[#263449] flex items-center justify-center text-amber-400 font-semibold">
+                                {publicacao.autor.nome
+                                  .charAt(0)
+                                  .toUpperCase()}
+                              </div>
+                            )}
+
+                            <div className="min-w-0 flex-1">
+                              <p className="text-white font-semibold text-sm">
+                                {publicacao.autor.nome}
+                              </p>
+
+                              <p className="text-gray-500 text-xs mt-1 break-all">
+                                @{publicacao.autor.identificador}
+                              </p>
+
+                              <p className="text-gray-500 text-xs mt-1">
+                                {formatarData(publicacao.publicadaEm)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <p className="text-gray-300 text-sm leading-relaxed mt-4 whitespace-pre-wrap break-words">
+                            {publicacao.texto || "Publicação sem texto."}
+                          </p>
+
+                          <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 text-gray-500 text-xs">
+                            <span>
+                              Curtidas: {publicacao.metricas.curtidas}
+                            </span>
+                            <span>
+                              Compartilhamentos: {publicacao.metricas.compartilhamentos}
+                            </span>
+                            <span>
+                              Respostas: {publicacao.metricas.respostas}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap gap-4 mt-4">
+                            <a
+                              href={publicacao.autor.perfil}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-amber-400 text-xs hover:underline"
+                            >
+                              Abrir perfil ↗
+                            </a>
+
+                            <a
+                              href={publicacao.endereco}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-amber-400 text-xs hover:underline"
+                            >
+                              Ver publicação original ↗
+                            </a>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+
+                  {grupo.falhas.length > 0 && (
+                    <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/5 p-4">
+                      <p className="text-red-300 text-xs font-semibold">
+                        Consultas que apresentaram falhas
+                      </p>
+
+                      {grupo.falhas.map((falha, indice) => (
+                        <p
+                          key={`${falha.consulta}-${indice}`}
+                          className="text-gray-400 text-xs mt-2"
+                        >
+                          {falha.consulta}: {falha.erro}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-7 border-t border-white/10 pt-4">
+              <p className="text-gray-500 text-xs leading-relaxed">
+                Estes são resultados de publicações públicas encontradas
+                no Bluesky. A presença de uma pessoa nesta lista não
+                comprova compra, consumo, intenção comercial ou atuação
+                como consultor. A classificação individual ainda será
+                desenvolvida com base nas evidências.
+              </p>
+
+              <p className="text-gray-600 text-xs mt-3 break-all">
+                Identificador: {resultado.pesquisaId}
+              </p>
+            </div>
           </section>
         )}
       </section>
