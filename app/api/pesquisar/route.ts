@@ -2,10 +2,7 @@
 import { NextResponse } from "next/server";
 
 import { prepararPesquisa } from "@/lib/pesquisa";
-import {
-  buscarPublicacoesBlueskyEmLote,
-  type GrupoGarimpo,
-} from "@/lib/conectores/bluesky";
+import { buscarPublicacoesBlueskyEmLote } from "@/lib/conectores/bluesky";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,27 +25,23 @@ export async function POST(request: Request) {
       );
     }
 
-    // Recupera a estratégia do nicho e as consultas preparadas.
     const pesquisa = prepararPesquisa({
       ambienteId,
       consulta: "",
       filtros: {},
     });
 
-    const grupos = pesquisa.grupos;
-
     const resultados = [];
 
-    for (const grupo of grupos) {
+    for (const grupo of pesquisa.grupos) {
       const consultas = pesquisa.consultasBluesky
         .filter((item) => item.grupo === grupo)
         .map((item) => item.consulta);
 
-      const resultado =
-        await buscarPublicacoesBlueskyEmLote(
-          consultas,
-          LIMITE_POR_CONSULTA
-        );
+      const resultado = await buscarPublicacoesBlueskyEmLote(
+        consultas,
+        LIMITE_POR_CONSULTA
+      );
 
       resultados.push({
         grupo,
