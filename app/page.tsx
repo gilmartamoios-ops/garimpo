@@ -164,6 +164,48 @@ export default function Home() {
         </div>
       </section>
 
+      {/* DESTAQUE DA GESTÃO DE COMUNIDADE */}
+      <section className="max-w-5xl mx-auto px-5 pt-5 md:pt-7">
+        <div className="rounded-xl border border-amber-500/30 bg-gradient-to-r from-[#172334] via-[#1b2938] to-[#111c2b] px-4 py-4 md:px-6 md:py-5 shadow-lg shadow-black/20">
+          <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6">
+            <div className="flex-shrink-0">
+              <img
+                src="/logo-gestaocomunidade.jpg"
+                alt="Gestão de Comunidade"
+                className="w-20 h-20 md:w-24 md:h-24 object-contain rounded-lg"
+              />
+            </div>
+
+            <div className="flex-1 text-center sm:text-left">
+              <p className="text-amber-400 text-[10px] md:text-xs font-semibold tracking-[0.2em] uppercase">
+                Gestão de Comunidade
+              </p>
+
+              <h2 className="text-lg md:text-2xl font-bold text-amber-300 mt-1">
+                BEM-VINDO, GARIMPEIRO!
+              </h2>
+
+              <h3 className="text-white text-sm md:text-base font-semibold mt-1">
+                Agora você é um Gestor de Comunidade.
+              </h3>
+
+              <p className="text-amber-200 text-xs md:text-sm font-medium mt-3">
+                Você está no ecossistema da Gestão de Comunidade.
+              </p>
+
+              <p className="text-gray-300 text-xs md:text-sm leading-relaxed mt-2">
+                O GArimpo encontra o veio. Você identifica oportunidades,
+                cultiva relacionamentos e constrói comunidades.
+              </p>
+
+              <p className="text-amber-400 text-xs font-semibold mt-3 tracking-wide">
+                Encontre. Avalie. Relacione-se. Construa.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section
         id="pesquisa"
         className="max-w-5xl mx-auto px-5 py-10 md:py-14"
