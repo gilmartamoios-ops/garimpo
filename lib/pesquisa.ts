@@ -13,12 +13,6 @@ export {
   validarResultados,
 } from "./resultados";
 
-/**
- * Primeira demanda comercial do GArimpo:
- * mercado de MMN, com foco inicial em suplementos
- * e empreendedorismo de venda direta.
- */
-
 export type GrupoGarimpo =
   | "consumidores_suplementos"
   | "interesse_suplementos"
@@ -53,13 +47,6 @@ export type PesquisaOrganizada = {
   criadaEm: string;
 };
 
-/**
- * Estratégia inicial de descoberta.
- *
- * Cada consulta procura manifestações públicas.
- * Os resultados ainda precisarão passar por análise,
- * identificação de autoria e validação de evidências.
- */
 function montarEstrategiaMMN(
   ambienteId: string
 ): {
@@ -107,7 +94,7 @@ function montarEstrategiaMMN(
     },
     {
       grupo: "empreendedores_venda_direta",
-      descricao: "Pessoas falando sobre trabalhar com produtos",
+      descricao: "Pessoas falando sobre revenda de produtos",
       consulta: '"revenda de produtos"',
     },
     {
@@ -173,16 +160,19 @@ export function prepararPesquisa(
 
   const estrategia = montarEstrategiaMMN(ambiente.id);
 
-  if (!consulta && Object.keys(filtros).length === 0) {
-    // A estratégia inicial do nicho já define a demanda.
-    // Não exigimos que o usuário invente uma consulta.
-  }
+  // Consultas externas antigas só são montadas quando
+  // existe uma solicitação manual com descrição ou filtros.
+  // O garimpo automático utiliza a estratégia do nicho.
+  const possuiSolicitacaoManual =
+    consulta.length > 0 || Object.keys(filtros).length > 0;
 
-  const consultasWeb = montarConsultasWeb({
-    ambienteId: ambiente.id,
-    consulta,
-    filtros,
-  });
+  const consultasWeb = possuiSolicitacaoManual
+    ? montarConsultasWeb({
+        ambienteId: ambiente.id,
+        consulta,
+        filtros,
+      })
+    : [];
 
   return {
     id: crypto.randomUUID(),
